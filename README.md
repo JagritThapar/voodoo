@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aussie Energy Savers: customer app
 
-## Getting Started
+A mobile-first web app (installable as a PWA) for [Aussie Energy Savers](https://www.aussieenergysavers.com.au) customers, plus an admin console for the AES team.
 
-First, run the development server:
+## What customers can do
+
+| Area | Features |
+| --- | --- |
+| **Design & quote** | Build a system (solar size, panel range, inverter, battery, EV charger, heat pump hot water, bird proofing) and see a live estimate with federal STC / Cheaper Home Batteries rebates, yearly savings and payback. Then request a quote. |
+| **Track projects** | Progress from quote requested → quote ready → accepted → install booked → installed → grid connected. Accept or decline quotes, see install date and installer, and follow a timeline. |
+| **Paperwork** | A checklist is created when a quote is accepted (contract, deposit, electricity bill, STC form, network approval, CES, meter, warranty pack, plus Solar Victoria in VIC). Customers upload PDFs/photos from their phone. |
+| **Reviews** | Rate the overall experience and the installer once the install is complete. |
+| **Refer & earn** | Personal referral code and link (share via SMS, WhatsApp, email or the native share sheet), or submit a friend's details directly. Each referral shows its status. |
+| **Network** | Multi-level tree of everyone who joined through you and the people they referred, with per-level counts and earnings. |
+| **Earnings** | Clearing and available balances, reward history, bank details and payout requests. |
+| **News & offers** | Feed of news and time-limited offers published by AES. |
+
+## Referral rewards (multi-level)
+
+Rewards are created when a referred customer's system is **installed**, never for sign-ups alone. Each upline member is paid according to `REWARD_LEVELS` in `src/lib/constants.ts`:
+
+| Level | Who | Default |
+| --- | --- | --- |
+| 1 | You referred them directly | $500 |
+| 2 | Someone you referred referred them | $150 |
+| 3 | Third level | $50 |
+
+Rewards start as **Clearing**. An admin approves them (one click approves everything older than 14 days) and they become **Available**. The customer withdraws, and the admin marks the payout paid with a bank reference.
+
+> Because rewards depend only on completed installs (product sales) and not on recruitment, the program is a referral scheme rather than a pyramid scheme under the Competition and Consumer Act. Have the final terms reviewed by a lawyer before launch.
+
+## Admin console (`/admin`)
+
+- Overview: new quote requests, installs in progress, payouts to process, latest reviews, customer list
+- Projects: set status, quote price, summary, validity, install date and installer, add timeline notes, review and upload paperwork
+- Referrals: work leads, change status, approve or void rewards
+- Payouts: bank details, mark paid or reject
+- News & offers: publish and delete posts
+
+## Running it
+
+Requires **Node 22.13+** (uses the built-in `node:sqlite`, so there is no database server to set up).
 
 ```bash
-npm run dev
+npm install
+npm run dev        # http://localhost:3000
 # or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build && npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+On first start the database is created at `data/aes.db` and seeded with:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Admin: `admin@aussieenergysavers.com.au` / `ChangeMe123!` (override with `ADMIN_EMAIL` / `ADMIN_PASSWORD`)
+- Demo customer with a 3-level network: `demo@aes.test` / `demo1234` (disable with `SEED_DEMO=false`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Environment variables
 
-## Learn More
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_PATH` | SQLite file location (default `data/aes.db`) |
+| `UPLOAD_DIR` | Paperwork upload folder (default `data/uploads`) |
+| `APP_URL` | Public URL used in referral links (otherwise taken from the request) |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | First admin account |
+| `SEED_DEMO` | `false` to skip demo data |
 
-To learn more about Next.js, take a look at the following resources:
+Deploy to a host with a persistent disk (a VPS, Render, Fly.io or Railway with a volume). Serverless hosts like Vercel don't keep the SQLite file between requests.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Things to configure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Pricing and rebates:** `src/lib/catalog.ts` (product prices, STC price, zone ratings, battery STC factor, tariffs). All figures are indicative placeholders.
+- **Reward amounts and payout minimum:** `src/lib/constants.ts`
+- **Company phone and email:** `COMPANY` in `src/lib/constants.ts`
 
-## Deploy on Vercel
+## Tech
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 15 (App Router, server actions), React 19, Tailwind CSS 3, SQLite via `node:sqlite`, scrypt password hashing, httpOnly session cookies.
