@@ -1,26 +1,23 @@
 # Render Blueprint: New → Blueprint → pick this repo.
+# Free setup: Render free web service + a free Turso database (https://turso.tech).
 services:
   - type: web
     name: aussie-energy-savers
     runtime: node
-    plan: starter # persistent disks need a paid plan
+    plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /login
-    disk:
-      name: aes-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: "22"
-      - key: DATABASE_PATH
-        value: /var/data/aes.db
-      - key: UPLOAD_DIR
-        value: /var/data/uploads
+      - key: TURSO_DATABASE_URL
+        sync: false # libsql://<your-db>.turso.io
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: APP_URL
+        sync: false # e.g. https://aussie-energy-savers.onrender.com
       - key: SEED_DEMO
         value: "false"
-      - key: ADMIN_PASSWORD
-        sync: false # Render asks you for this on first deploy
-      - key: APP_URL
-        sync: false # e.g. https://app.aussieenergysavers.com.au

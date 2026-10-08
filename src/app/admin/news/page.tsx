@@ -9,7 +9,7 @@ export const metadata = { title: "News & offers" };
 
 export default async function AdminNews() {
   await requireAdmin();
-  const posts = all<{ id: number; kind: string; title: string; summary: string; expires_at: string | null; published_at: string }>(
+  const posts = await all<{ id: number; kind: string; title: string; summary: string; expires_at: string | null; published_at: string }>(
     "SELECT id, kind, title, summary, expires_at, published_at FROM posts ORDER BY published_at DESC",
   );
   return (

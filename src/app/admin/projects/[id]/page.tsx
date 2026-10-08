@@ -11,14 +11,14 @@ import { Badge, Card, Field, PageHeader } from "@/components/ui";
 export default async function AdminProject({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
-  const project = one<Project>("SELECT * FROM projects WHERE id = ?", Number(id));
+  const project = await one<Project>("SELECT * FROM projects WHERE id = ?", Number(id));
   if (!project) notFound();
-  const customer = one<User>("SELECT * FROM users WHERE id = ?", project.user_id)!;
+  const customer = (await one<User>("SELECT * FROM users WHERE id = ?", project.user_id))!;
   const design = parseDesign(project);
   const est = estimate(design);
-  const paperwork = all<Paperwork>("SELECT * FROM paperwork WHERE project_id = ? ORDER BY id", project.id);
-  const events = all<ProjectEvent>("SELECT * FROM project_events WHERE project_id = ? ORDER BY created_at DESC, id DESC", project.id);
-  const review = one<Review>("SELECT * FROM reviews WHERE project_id = ?", project.id);
+  const paperwork = await all<Paperwork>("SELECT * FROM paperwork WHERE project_id = ? ORDER BY id", project.id);
+  const events = await all<ProjectEvent>("SELECT * FROM project_events WHERE project_id = ? ORDER BY created_at DESC, id DESC", project.id);
+  const review = await one<Review>("SELECT * FROM reviews WHERE project_id = ?", project.id);
 
   return (
     <div className="space-y-4">

@@ -8,10 +8,10 @@ export const metadata = { title: "Referrals" };
 
 export default async function AdminReferrals() {
   await requireAdmin();
-  const referrals = all<{ id: number; name: string; email: string | null; phone: string | null; suburb: string | null; interest: string | null; notes: string | null; status: ReferralStatus; created_at: string; referred_user_id: number | null; referrer: string }>(
+  const referrals = await all<{ id: number; name: string; email: string | null; phone: string | null; suburb: string | null; interest: string | null; notes: string | null; status: ReferralStatus; created_at: string; referred_user_id: number | null; referrer: string }>(
     `SELECT r.*, u.first_name || ' ' || u.last_name AS referrer FROM referrals r JOIN users u ON u.id = r.referrer_id ORDER BY r.status = 'submitted' DESC, r.created_at DESC LIMIT 300`,
   );
-  const commissions = all<{ id: number; level: number; amount: number; status: string; payout_id: number | null; created_at: string; beneficiary: string; referral: string }>(
+  const commissions = await all<{ id: number; level: number; amount: number; status: string; payout_id: number | null; created_at: string; beneficiary: string; referral: string }>(
     `SELECT c.*, u.first_name || ' ' || u.last_name AS beneficiary, r.name AS referral
      FROM commissions c JOIN users u ON u.id = c.beneficiary_id JOIN referrals r ON r.id = c.referral_id
      ORDER BY c.status = 'pending' DESC, c.created_at DESC LIMIT 300`,

@@ -67,10 +67,10 @@ export function paperworkTemplate(d: Design): Omit<Paperwork, "id" | "project_id
   return items;
 }
 
-export function createPaperwork(projectId: number, d: Design) {
-  if (one("SELECT 1 FROM paperwork WHERE project_id = ?", projectId)) return;
+export async function createPaperwork(projectId: number, d: Design) {
+  if (await one("SELECT 1 FROM paperwork WHERE project_id = ?", projectId)) return;
   for (const p of paperworkTemplate(d)) {
-    run("INSERT INTO paperwork (project_id, name, description, owner, status) VALUES (?, ?, ?, ?, ?)", projectId, p.name, p.description, p.owner, p.status);
+    await run("INSERT INTO paperwork (project_id, name, description, owner, status) VALUES (?, ?, ?, ?, ?)", projectId, p.name, p.description, p.owner, p.status);
   }
 }
 
@@ -84,20 +84,20 @@ const REFERRAL_SYNC: Partial<Record<ProjectStatus, Parameters<typeof advanceRefe
 };
 
 /** Single place that changes a project's status: logs the timeline and keeps referrals in sync. */
-export function setProjectStatus(project: Project, status: ProjectStatus, note?: string) {
+export async function setProjectStatus(project: Project, status: ProjectStatus, note?: string) {
   if (project.status !== status) {
-    run("UPDATE projects SET status = ?, updated_at = datetime('now') WHERE id = ?", status, project.id);
-    run("INSERT INTO project_events (project_id, status, note) VALUES (?, ?, ?)", project.id, status, note ?? null);
+    await run("UPDATE projects SET status = ?, updated_at = datetime('now') WHERE id = ?", status, project.id);
+    await run("INSERT INTO project_events (project_id, status, note) VALUES (?, ?, ?)", project.id, status, note ?? null);
   } else if (note) {
-    run("INSERT INTO project_events (project_id, status, note) VALUES (?, ?, ?)", project.id, status, note);
+    await run("INSERT INTO project_events (project_id, status, note) VALUES (?, ?, ?)", project.id, status, note);
   }
   if (status === "accepted" || status === "scheduled" || status === "installed" || status === "connected") {
-    createPaperwork(project.id, parseDesign(project));
+    await createPaperwork(project.id, parseDesign(project));
   }
   const sync = REFERRAL_SYNC[status];
-  if (sync) advanceReferralForUser(project.user_id, sync);
+  if (sync) await advanceReferralForUser(project.user_id, sync);
 }
 
-export function projectsFor(userId: number) {
-  return all<Project>("SELECT * FROM projects WHERE user_id = ? ORDER BY created_at DESC, id DESC", userId);
+export async function projectsFor(userId: number) {
+  return await all<Project>("SELECT * FROM projects WHERE user_id = ? ORDER BY created_at DESC, id DESC", userId);
 }

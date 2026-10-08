@@ -10,7 +10,7 @@ export const metadata = { title: "Create account" };
 export default async function SignupPage({ searchParams }: { searchParams: Promise<{ ref?: string }> }) {
   const { ref = "" } = await searchParams;
   const referrer = ref
-    ? one<{ first_name: string }>("SELECT first_name FROM users WHERE referral_code = ? COLLATE NOCASE", ref)
+    ? await one<{ first_name: string }>("SELECT first_name FROM users WHERE referral_code = ? COLLATE NOCASE", ref)
     : undefined;
 
   return (

@@ -44,7 +44,7 @@ function Node({ node }: { node: NetworkNode }) {
 
 export default async function NetworkPage() {
   const user = await requireUser();
-  const tree = buildNetwork(user.id);
+  const tree = await buildNetwork(user.id);
   const all = flatten(tree);
   const levels = Array.from(new Set(all.map((n) => n.level))).sort((a, b) => a - b);
 

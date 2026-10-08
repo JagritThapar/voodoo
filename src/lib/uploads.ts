@@ -1,18 +1,25 @@
 import "server-only";
 import crypto from "node:crypto";
-import fs from "node:fs/promises";
 import path from "node:path";
+import { one, run } from "./db";
 
-export const UPLOAD_DIR = process.env.UPLOAD_DIR ?? path.join(process.cwd(), "data", "uploads");
-const ALLOWED_EXT = new Set([".pdf", ".jpg", ".jpeg", ".png", ".heic", ".webp"]);
+// Files are stored in the database so the app needs no persistent disk (e.g. Render free + Turso).
+const MAX_BYTES = 5 * 1024 * 1024;
+const TYPES: Record<string, string> = {
+  ".pdf": "application/pdf", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".heic": "image/heic",
+};
 
 export async function saveUpload(file: File): Promise<{ name: string; stored: string } | { error: string }> {
   if (!file || file.size === 0) return { error: "Choose a file to upload." };
-  if (file.size > 10 * 1024 * 1024) return { error: "Files must be under 10 MB." };
+  if (file.size > MAX_BYTES) return { error: "Files must be under 5 MB. Try a photo instead of a scan, or compress the PDF." };
   const ext = path.extname(file.name).toLowerCase();
-  if (!ALLOWED_EXT.has(ext)) return { error: "Upload a PDF or photo (JPG, PNG, HEIC)." };
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  const stored = `${crypto.randomUUID()}${ext}`;
-  await fs.writeFile(path.join(UPLOAD_DIR, stored), Buffer.from(await file.arrayBuffer()));
-  return { name: path.basename(file.name).slice(0, 120), stored };
+  if (!TYPES[ext]) return { error: "Upload a PDF or photo (JPG, PNG, HEIC)." };
+  const id = crypto.randomUUID();
+  await run("INSERT INTO files (id, mime, data) VALUES (?, ?, ?)", id, TYPES[ext], new Uint8Array(await file.arrayBuffer()));
+  return { name: path.basename(file.name).slice(0, 120), stored: id };
+}
+
+export async function readUpload(id: string) {
+  const row = await one<{ mime: string; data: ArrayBuffer }>("SELECT mime, data FROM files WHERE id = ?", id);
+  return row ? { mime: row.mime, data: new Uint8Array(row.data) } : null;
 }

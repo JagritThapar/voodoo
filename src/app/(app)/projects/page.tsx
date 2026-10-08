@@ -9,7 +9,7 @@ export const metadata = { title: "My projects" };
 
 export default async function ProjectsPage() {
   const user = await requireUser();
-  const projects = projectsFor(user.id);
+  const projects = await projectsFor(user.id);
   return (
     <>
       <PageHeader

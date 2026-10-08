@@ -14,7 +14,7 @@ export const metadata = { title: "Refer friends" };
 export default async function ReferralsPage() {
   const user = await requireUser();
   const link = `${await appUrl()}/signup?ref=${user.referral_code}`;
-  const referrals = all<Referral & { earned: number | null }>(
+  const referrals = await all<Referral & { earned: number | null }>(
     `SELECT r.*, (SELECT SUM(amount) FROM commissions c WHERE c.referral_id = r.id AND c.beneficiary_id = ? AND c.status != 'void') AS earned
      FROM referrals r WHERE r.referrer_id = ? ORDER BY r.created_at DESC`,
     user.id,

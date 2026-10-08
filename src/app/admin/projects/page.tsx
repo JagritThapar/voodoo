@@ -13,7 +13,7 @@ export default async function AdminProjects({ searchParams }: { searchParams: Pr
   const params: (string | number)[] = [];
   if (status && status in PROJECT_STATUS) { where.push("p.status = ?"); params.push(status); }
   if (user) { where.push("p.user_id = ?"); params.push(Number(user)); }
-  const rows = all<{ id: number; title: string; status: ProjectStatus; quote_price: number | null; estimate_low: number; estimate_high: number; install_date: string | null; updated_at: string; first_name: string; last_name: string; suburb: string | null }>(
+  const rows = await all<{ id: number; title: string; status: ProjectStatus; quote_price: number | null; estimate_low: number; estimate_high: number; install_date: string | null; updated_at: string; first_name: string; last_name: string; suburb: string | null }>(
     `SELECT p.*, u.first_name, u.last_name, u.suburb FROM projects p JOIN users u ON u.id = p.user_id
      ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY p.updated_at DESC LIMIT 200`,
     ...params,

@@ -9,24 +9,24 @@ export const metadata = { title: "Overview" };
 
 export default async function AdminHome() {
   await requireAdmin();
-  const n = (sql: string) => one<{ n: number | null }>(sql)?.n ?? 0;
+  const n = async (sql: string) => (await one<{ n: number | null }>(sql))?.n ?? 0;
   const stats = {
-    customers: n("SELECT COUNT(*) AS n FROM users WHERE role = 'customer'"),
-    openQuotes: n("SELECT COUNT(*) AS n FROM projects WHERE status = 'requested'"),
-    inProgress: n("SELECT COUNT(*) AS n FROM projects WHERE status IN ('accepted','scheduled')"),
-    installed: n("SELECT COUNT(*) AS n FROM projects WHERE status IN ('installed','connected')"),
-    payouts: n("SELECT SUM(amount) AS n FROM payouts WHERE status = 'requested'"),
-    leads: n("SELECT COUNT(*) AS n FROM referrals WHERE status = 'submitted'"),
-    avgRating: one<{ n: number | null }>("SELECT AVG(rating) AS n FROM reviews")?.n,
+    customers: await n("SELECT COUNT(*) AS n FROM users WHERE role = 'customer'"),
+    openQuotes: await n("SELECT COUNT(*) AS n FROM projects WHERE status = 'requested'"),
+    inProgress: await n("SELECT COUNT(*) AS n FROM projects WHERE status IN ('accepted','scheduled')"),
+    installed: await n("SELECT COUNT(*) AS n FROM projects WHERE status IN ('installed','connected')"),
+    payouts: await n("SELECT SUM(amount) AS n FROM payouts WHERE status = 'requested'"),
+    leads: await n("SELECT COUNT(*) AS n FROM referrals WHERE status = 'submitted'"),
+    avgRating: (await one<{ n: number | null }>("SELECT AVG(rating) AS n FROM reviews"))?.n,
   };
-  const requests = all<{ id: number; title: string; status: ProjectStatus; first_name: string; last_name: string; suburb: string | null; estimate_low: number; estimate_high: number; created_at: string }>(
+  const requests = await all<{ id: number; title: string; status: ProjectStatus; first_name: string; last_name: string; suburb: string | null; estimate_low: number; estimate_high: number; created_at: string }>(
     `SELECT p.id, p.title, p.status, p.estimate_low, p.estimate_high, p.created_at, u.first_name, u.last_name, u.suburb
      FROM projects p JOIN users u ON u.id = p.user_id WHERE p.status IN ('requested','accepted') ORDER BY p.created_at DESC LIMIT 8`,
   );
-  const reviews = all<{ id: number; project_id: number; rating: number; installer_rating: number | null; title: string; body: string; created_at: string; first_name: string; last_name: string }>(
+  const reviews = await all<{ id: number; project_id: number; rating: number; installer_rating: number | null; title: string; body: string; created_at: string; first_name: string; last_name: string }>(
     `SELECT r.*, u.first_name, u.last_name FROM reviews r JOIN users u ON u.id = r.user_id ORDER BY r.created_at DESC LIMIT 10`,
   );
-  const customers = all<{ id: number; first_name: string; last_name: string; email: string; phone: string | null; suburb: string | null; created_at: string; referrer: string | null; projects: number; downline: number }>(
+  const customers = await all<{ id: number; first_name: string; last_name: string; email: string; phone: string | null; suburb: string | null; created_at: string; referrer: string | null; projects: number; downline: number }>(
     `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.suburb, u.created_at,
        (SELECT first_name || ' ' || last_name FROM users x WHERE x.id = u.referred_by) AS referrer,
        (SELECT COUNT(*) FROM projects p WHERE p.user_id = u.id) AS projects,

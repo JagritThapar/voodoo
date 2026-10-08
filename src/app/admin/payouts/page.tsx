@@ -10,7 +10,7 @@ type Row = { id: number; amount: number; status: string; account_name: string; b
 
 export default async function AdminPayouts() {
   await requireAdmin();
-  const rows = all<Row>(
+  const rows = await all<Row>(
     `SELECT p.*, u.first_name || ' ' || u.last_name AS name, u.email FROM payouts p JOIN users u ON u.id = p.user_id
      ORDER BY p.status = 'requested' DESC, p.created_at DESC LIMIT 200`,
   );

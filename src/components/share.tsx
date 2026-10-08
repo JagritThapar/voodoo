@@ -23,7 +23,7 @@ export function ShareReferral({ code, link, firstName }: { code: string; link: s
       } catch {
         /* user cancelled */
       }
-    } else copy(link, "link");
+    } else void copy(link, "link");
   };
 
   return (

@@ -15,21 +15,21 @@ type Post = { id: number; kind: string; title: string; summary: string; publishe
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
   const user = await requireUser();
   const { welcome } = await searchParams;
-  const projects = projectsFor(user.id);
+  const projects = await projectsFor(user.id);
   const active = projects.filter((p) => p.status !== "declined" && p.status !== "cancelled");
-  const needsReview = all<{ id: number; title: string }>(
+  const needsReview = await all<{ id: number; title: string }>(
     `SELECT p.id, p.title FROM projects p LEFT JOIN reviews r ON r.project_id = p.id
      WHERE p.user_id = ? AND p.status IN ('installed','connected') AND r.id IS NULL`,
     user.id,
   );
-  const actions = all<{ project_id: number; n: number }>(
+  const actions = await all<{ project_id: number; n: number }>(
     `SELECT pw.project_id, COUNT(*) AS n FROM paperwork pw JOIN projects p ON p.id = pw.project_id
      WHERE p.user_id = ? AND pw.status = 'action_required' GROUP BY pw.project_id`,
     user.id,
   );
-  const w = wallet(user.id);
-  const network = flatten(buildNetwork(user.id));
-  const posts = all<Post>("SELECT id, kind, title, summary, published_at FROM posts WHERE expires_at IS NULL OR expires_at >= date('now') ORDER BY published_at DESC LIMIT 3");
+  const w = await wallet(user.id);
+  const network = flatten(await buildNetwork(user.id));
+  const posts = await all<Post>("SELECT id, kind, title, summary, published_at FROM posts WHERE expires_at IS NULL OR expires_at >= date('now') ORDER BY published_at DESC LIMIT 3");
 
   return (
     <div className="space-y-6">

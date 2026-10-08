@@ -39,7 +39,7 @@ Rewards start as **Clearing**. An admin approves them (one click approves everyt
 
 ## Running it
 
-Requires **Node 22.13+** (uses the built-in `node:sqlite`, so there is no database server to set up).
+Requires **Node 22+**.
 
 ```bash
 npm install
@@ -48,22 +48,30 @@ npm run dev        # http://localhost:3000
 npm run build && npm start
 ```
 
-On first start the database is created at `data/aes.db` and seeded with:
+Locally the data lives in a SQLite file at `data/aes.db`, created on first start and seeded with:
 
 - Admin: `admin@aussieenergysavers.com.au` / `ChangeMe123!` (override with `ADMIN_EMAIL` / `ADMIN_PASSWORD`)
 - Demo customer with a 3-level network: `demo@aes.test` / `demo1234` (disable with `SEED_DEMO=false`)
+
+Uploaded paperwork is stored in the database too (5 MB per file), so the app needs no disk.
+
+### Free hosting: Render + Turso
+
+1. Create a free database at [turso.tech](https://turso.tech). Copy its **URL** (`libsql://…turso.io`) and create a **token**.
+2. In Render: **New → Blueprint**, pick this repo. `render.yaml` sets up a free web service.
+3. Fill in `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `ADMIN_PASSWORD` and `APP_URL` when asked, then deploy.
+
+Free Render services sleep after 15 minutes without visitors; the next visit takes about a minute to wake up. Your data is safe in Turso.
 
 ### Environment variables
 
 | Variable | Purpose |
 | --- | --- |
-| `DATABASE_PATH` | SQLite file location (default `data/aes.db`) |
-| `UPLOAD_DIR` | Paperwork upload folder (default `data/uploads`) |
+| `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` | Hosted Turso database (when unset, a local file is used) |
+| `DATABASE_PATH` | Local SQLite file location (default `data/aes.db`) |
 | `APP_URL` | Public URL used in referral links (otherwise taken from the request) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | First admin account |
 | `SEED_DEMO` | `false` to skip demo data |
-
-Deploy to a host with a persistent disk (a VPS, Render, Fly.io or Railway with a volume). Serverless hosts like Vercel don't keep the SQLite file between requests.
 
 ## Things to configure
 
@@ -73,4 +81,4 @@ Deploy to a host with a persistent disk (a VPS, Render, Fly.io or Railway with a
 
 ## Tech
 
-Next.js 15 (App Router, server actions), React 19, Tailwind CSS 3, SQLite via `node:sqlite`, scrypt password hashing, httpOnly session cookies.
+Next.js 15 (App Router, server actions), React 19, Tailwind CSS 3, SQLite / Turso via `@libsql/client`, scrypt password hashing, httpOnly session cookies.

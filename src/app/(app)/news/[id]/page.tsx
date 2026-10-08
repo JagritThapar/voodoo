@@ -9,7 +9,7 @@ import type { Post } from "../page";
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   await requireUser();
   const { id } = await params;
-  const post = one<Post>("SELECT * FROM posts WHERE id = ?", Number(id));
+  const post = await one<Post>("SELECT * FROM posts WHERE id = ?", Number(id));
   if (!post) notFound();
   const external = post.cta_url?.startsWith("http");
   return (

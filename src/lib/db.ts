@@ -1,10 +1,12 @@
 import "server-only";
-import { DatabaseSync } from "node:sqlite";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { createClient, type Client, type InArgs, type Transaction } from "@libsql/client";
 import fs from "node:fs";
 import path from "node:path";
 import { seed } from "./seed";
 
-const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "aes.db");
+// Turso (hosted libSQL) when TURSO_DATABASE_URL is set; otherwise a local SQLite file.
+const DB_URL = process.env.TURSO_DATABASE_URL ?? `file:${process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "aes.db")}`;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS users (
@@ -125,6 +127,13 @@ CREATE TABLE IF NOT EXISTS commissions (
 );
 CREATE INDEX IF NOT EXISTS idx_commissions_beneficiary ON commissions(beneficiary_id);
 
+CREATE TABLE IF NOT EXISTS files (
+  id TEXT PRIMARY KEY,
+  mime TEXT NOT NULL,
+  data BLOB NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   kind TEXT NOT NULL DEFAULT 'news',
@@ -140,49 +149,65 @@ CREATE TABLE IF NOT EXISTS posts (
 
 declare global {
   // eslint-disable-next-line no-var -- global augmentation requires var
-  var __aesDb: DatabaseSync | undefined;
+  var __aesDb: Promise<Client> | undefined;
 }
 
-function open(): DatabaseSync {
-  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-  const db = new DatabaseSync(DB_PATH);
-  // busy_timeout first so concurrent processes (e.g. build workers) wait instead of failing.
-  db.exec("PRAGMA busy_timeout = 10000;");
-  db.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
-  db.exec(SCHEMA);
-  seed(db);
-  return db;
+async function open(): Promise<Client> {
+  if (DB_URL.startsWith("file:")) fs.mkdirSync(path.dirname(DB_URL.slice(5)), { recursive: true });
+  const client = createClient({ url: DB_URL, authToken: process.env.TURSO_AUTH_TOKEN });
+  if (DB_URL.startsWith("file:")) await client.execute("PRAGMA busy_timeout = 10000");
+  await client.executeMultiple(SCHEMA);
+  await seed(client);
+  return client;
 }
 
-// Opened lazily on first query; reused across hot reloads in dev.
-function getDb(): DatabaseSync {
-  return (globalThis.__aesDb ??= open());
+// Opened lazily on first query; reused across requests and hot reloads.
+function getDb(): Promise<Client> {
+  globalThis.__aesDb ??= open().catch((e) => {
+    globalThis.__aesDb = undefined;
+    throw e;
+  });
+  return globalThis.__aesDb;
 }
 
-type Param = string | number | bigint | null | Uint8Array;
+// Queries inside tx() run on that transaction.
+const currentTx = new AsyncLocalStorage<Transaction>();
 
-export function one<T>(sql: string, ...params: Param[]): T | undefined {
-  return getDb().prepare(sql).get(...params) as T | undefined;
+export type Param = string | number | bigint | null | Uint8Array | ArrayBuffer;
+
+async function exec(sql: string, params: Param[]) {
+  const target = currentTx.getStore() ?? (await getDb());
+  const rs = await target.execute({ sql, args: params as InArgs });
+  // Plain objects so rows can be passed straight to client components.
+  const rows = rs.rows.map((row) => Object.fromEntries(rs.columns.map((c, i) => [c, row[i]])));
+  return { rows, changes: rs.rowsAffected, id: Number(rs.lastInsertRowid ?? 0) };
 }
 
-export function all<T>(sql: string, ...params: Param[]): T[] {
-  return getDb().prepare(sql).all(...params) as T[];
+export async function one<T>(sql: string, ...params: Param[]): Promise<T | undefined> {
+  return (await exec(sql, params)).rows[0] as T | undefined;
 }
 
-export function run(sql: string, ...params: Param[]) {
-  const r = getDb().prepare(sql).run(...params);
-  return { changes: Number(r.changes), id: Number(r.lastInsertRowid) };
+export async function all<T>(sql: string, ...params: Param[]): Promise<T[]> {
+  return (await exec(sql, params)).rows as T[];
 }
 
-export function tx<T>(fn: () => T): T {
-  const db = getDb();
-  db.exec("BEGIN IMMEDIATE");
+export async function run(sql: string, ...params: Param[]) {
+  const { changes, id } = await exec(sql, params);
+  return { changes, id };
+}
+
+/** Runs fn in a write transaction; every one/all/run call inside it joins the transaction. */
+export async function tx<T>(fn: () => Promise<T>): Promise<T> {
+  if (currentTx.getStore()) return fn();
+  const t = await (await getDb()).transaction("write");
   try {
-    const result = fn();
-    db.exec("COMMIT");
+    const result = await currentTx.run(t, fn);
+    await t.commit();
     return result;
   } catch (e) {
-    db.exec("ROLLBACK");
+    await t.rollback();
     throw e;
+  } finally {
+    t.close();
   }
 }

@@ -33,7 +33,7 @@ const sha256 = (s: string) => crypto.createHash("sha256").update(s).digest("hex"
 export async function createSession(userId: number) {
   const token = crypto.randomBytes(32).toString("base64url");
   const expires = new Date(Date.now() + SESSION_DAYS * 864e5);
-  run("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)", sha256(token), userId, expires.toISOString());
+  await run("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)", sha256(token), userId, expires.toISOString());
   (await cookies()).set(COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
@@ -46,14 +46,14 @@ export async function createSession(userId: number) {
 export async function destroySession() {
   const jar = await cookies();
   const token = jar.get(COOKIE)?.value;
-  if (token) run("DELETE FROM sessions WHERE token_hash = ?", sha256(token));
+  if (token) await run("DELETE FROM sessions WHERE token_hash = ?", sha256(token));
   jar.delete(COOKIE);
 }
 
 export const getUser = cache(async (): Promise<User | null> => {
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
-  const user = one<User>(
+  const user = await one<User>(
     `SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > ?`,
     sha256(token),
@@ -74,10 +74,10 @@ export async function requireAdmin(): Promise<User> {
   return user;
 }
 
-export function newReferralCode(firstName: string): string {
+export async function newReferralCode(firstName: string): Promise<string> {
   const base = firstName.replace(/[^a-z]/gi, "").toUpperCase().slice(0, 5) || "AES";
   for (;;) {
     const code = `${base}${crypto.randomInt(100, 9999)}`;
-    if (!one("SELECT 1 FROM users WHERE referral_code = ?", code)) return code;
+    if (!(await one("SELECT 1 FROM users WHERE referral_code = ?", code))) return code;
   }
 }

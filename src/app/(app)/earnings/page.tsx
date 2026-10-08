@@ -14,14 +14,14 @@ type Payout = { id: number; amount: number; status: string; reference: string | 
 
 export default async function EarningsPage() {
   const user = await requireUser();
-  const w = wallet(user.id);
-  const rows = all<Row>(
+  const w = await wallet(user.id);
+  const rows = await all<Row>(
     `SELECT c.id, c.level, c.amount, c.status, c.created_at, r.name, u.first_name AS referred_first, u.last_name AS referred_last
      FROM commissions c JOIN referrals r ON r.id = c.referral_id LEFT JOIN users u ON u.id = r.referred_user_id
      WHERE c.beneficiary_id = ? ORDER BY c.created_at DESC`,
     user.id,
   );
-  const payouts = all<Payout>("SELECT * FROM payouts WHERE user_id = ? ORDER BY created_at DESC", user.id);
+  const payouts = await all<Payout>("SELECT * FROM payouts WHERE user_id = ? ORDER BY created_at DESC", user.id);
   const display = (r: Row) => {
     const full = r.referred_first ? `${r.referred_first} ${r.referred_last ?? ""}`.trim() : r.name;
     const parts = full.split(/\s+/);

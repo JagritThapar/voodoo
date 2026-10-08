@@ -16,7 +16,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
   await requireUser();
   const { kind } = await searchParams;
   const filter = kind === "offer" || kind === "news" ? kind : null;
-  const posts = all<Post>(
+  const posts = await all<Post>(
     `SELECT * FROM posts WHERE (expires_at IS NULL OR expires_at >= date('now')) ${filter ? "AND kind = ?" : ""} ORDER BY published_at DESC`,
     ...(filter ? [filter] : []),
   );

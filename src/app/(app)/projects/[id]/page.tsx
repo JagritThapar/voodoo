@@ -16,13 +16,13 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
   const user = await requireUser();
   const { id } = await params;
   const { new: isNew } = await searchParams;
-  const project = one<Project>("SELECT * FROM projects WHERE id = ? AND user_id = ?", Number(id), user.id);
+  const project = await one<Project>("SELECT * FROM projects WHERE id = ? AND user_id = ?", Number(id), user.id);
   if (!project) notFound();
 
   const design = parseDesign(project);
-  const paperwork = all<Paperwork>("SELECT * FROM paperwork WHERE project_id = ? ORDER BY id", project.id);
-  const events = all<ProjectEvent>("SELECT * FROM project_events WHERE project_id = ? ORDER BY created_at DESC, id DESC", project.id);
-  const review = one<Review>("SELECT * FROM reviews WHERE project_id = ?", project.id);
+  const paperwork = await all<Paperwork>("SELECT * FROM paperwork WHERE project_id = ? ORDER BY id", project.id);
+  const events = await all<ProjectEvent>("SELECT * FROM project_events WHERE project_id = ? ORDER BY created_at DESC, id DESC", project.id);
+  const review = await one<Review>("SELECT * FROM reviews WHERE project_id = ?", project.id);
   const st = PROJECT_STATUS[project.status];
   const installed = project.status === "installed" || project.status === "connected";
   const done = paperwork.filter((p) => p.status === "approved").length;

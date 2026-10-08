@@ -13,7 +13,7 @@ const str = (fd: FormData, k: string, max = 500) => String(fd.get(k) ?? "").trim
 
 export async function adminUpdateProject(_: FormState, fd: FormData): Promise<FormState> {
   await requireAdmin();
-  const project = one<Project>("SELECT * FROM projects WHERE id = ?", Number(fd.get("id")));
+  const project = await one<Project>("SELECT * FROM projects WHERE id = ?", Number(fd.get("id")));
   if (!project) return { error: "Project not found." };
   const status = str(fd, "status") as ProjectStatus;
   if (!(status in PROJECT_STATUS)) return { error: "Invalid status." };
@@ -21,13 +21,13 @@ export async function adminUpdateProject(_: FormState, fd: FormData): Promise<Fo
   if (price != null && !(price > 0)) return { error: "Quote price must be a positive number." };
   if (status === "quoted" && price == null) return { error: "Add a quote price before sending the quote." };
 
-  tx(() => {
-    run(
+  await tx(async () => {
+    await run(
       `UPDATE projects SET quote_price = ?, quote_summary = ?, quote_valid_until = ?, install_date = ?, installer = ?, updated_at = datetime('now') WHERE id = ?`,
       price, str(fd, "quote_summary", 2000) || null, str(fd, "quote_valid_until", 10) || null,
       str(fd, "install_date", 10) || null, str(fd, "installer", 120) || null, project.id,
     );
-    setProjectStatus(project, status, str(fd, "note") || undefined);
+    await setProjectStatus(project, status, str(fd, "note") || undefined);
   });
   revalidatePath("/admin", "layout");
   return { ok: "Project updated." };
@@ -42,9 +42,9 @@ export async function adminUpdatePaperwork(_: FormState, fd: FormData): Promise<
   if (file && file.size > 0) {
     const saved = await saveUpload(file);
     if ("error" in saved) return saved;
-    run("UPDATE paperwork SET file_name = ?, file_path = ? WHERE id = ?", saved.name, saved.stored, id);
+    await run("UPDATE paperwork SET file_name = ?, file_path = ? WHERE id = ?", saved.name, saved.stored, id);
   }
-  run("UPDATE paperwork SET status = ?, updated_at = datetime('now') WHERE id = ?", status, id);
+  await run("UPDATE paperwork SET status = ?, updated_at = datetime('now') WHERE id = ?", status, id);
   revalidatePath("/admin", "layout");
   return { ok: "Saved." };
 }
@@ -53,7 +53,7 @@ export async function adminSetReferral(fd: FormData) {
   await requireAdmin();
   const status = str(fd, "status") as ReferralStatus;
   if (!(status in REFERRAL_STATUS)) return;
-  tx(() => setReferralStatus(Number(fd.get("id")), status));
+  await tx(async () => await setReferralStatus(Number(fd.get("id")), status));
   revalidatePath("/admin", "layout");
 }
 
@@ -62,13 +62,13 @@ export async function adminSetCommission(fd: FormData) {
   const status = str(fd, "status");
   if (status !== "approved" && status !== "void") return;
   // Only commissions not yet in a payout can change.
-  run("UPDATE commissions SET status = ? WHERE id = ? AND payout_id IS NULL AND status IN ('pending', 'approved')", status, Number(fd.get("id")));
+  await run("UPDATE commissions SET status = ? WHERE id = ? AND payout_id IS NULL AND status IN ('pending', 'approved')", status, Number(fd.get("id")));
   revalidatePath("/admin", "layout");
 }
 
 export async function adminApproveAllClearing() {
   await requireAdmin();
-  run("UPDATE commissions SET status = 'approved' WHERE status = 'pending' AND created_at <= datetime('now', '-14 days')");
+  await run("UPDATE commissions SET status = 'approved' WHERE status = 'pending' AND created_at <= datetime('now', '-14 days')");
   revalidatePath("/admin", "layout");
 }
 
@@ -76,15 +76,15 @@ export async function adminProcessPayout(fd: FormData) {
   await requireAdmin();
   const id = Number(fd.get("id"));
   const decision = str(fd, "decision");
-  tx(() => {
-    const payout = one<{ status: string }>("SELECT status FROM payouts WHERE id = ?", id);
+  await tx(async () => {
+    const payout = await one<{ status: string }>("SELECT status FROM payouts WHERE id = ?", id);
     if (payout?.status !== "requested") return;
     if (decision === "paid") {
-      run("UPDATE payouts SET status = 'paid', reference = ?, processed_at = datetime('now') WHERE id = ?", str(fd, "reference", 60) || null, id);
-      run("UPDATE commissions SET status = 'paid' WHERE payout_id = ?", id);
+      await run("UPDATE payouts SET status = 'paid', reference = ?, processed_at = datetime('now') WHERE id = ?", str(fd, "reference", 60) || null, id);
+      await run("UPDATE commissions SET status = 'paid' WHERE payout_id = ?", id);
     } else if (decision === "rejected") {
-      run("UPDATE payouts SET status = 'rejected', processed_at = datetime('now') WHERE id = ?", id);
-      run("UPDATE commissions SET payout_id = NULL WHERE payout_id = ?", id);
+      await run("UPDATE payouts SET status = 'rejected', processed_at = datetime('now') WHERE id = ?", id);
+      await run("UPDATE commissions SET payout_id = NULL WHERE payout_id = ?", id);
     }
   });
   revalidatePath("/admin", "layout");
@@ -99,7 +99,7 @@ export async function adminCreatePost(_: FormState, fd: FormData): Promise<FormS
   if (!title || !summary || !body) return { error: "Title, summary and body are required." };
   const ctaUrl = str(fd, "cta_url", 300);
   if (ctaUrl && !ctaUrl.startsWith("/") && !ctaUrl.startsWith("https://")) return { error: "Button link must start with / or https://" };
-  run(
+  await run(
     "INSERT INTO posts (kind, title, summary, body, cta_label, cta_url, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
     kind, title, summary, body, str(fd, "cta_label", 40) || null, ctaUrl || null, str(fd, "expires_at", 10) || null,
   );
@@ -109,6 +109,6 @@ export async function adminCreatePost(_: FormState, fd: FormData): Promise<FormS
 
 export async function adminDeletePost(fd: FormData) {
   await requireAdmin();
-  run("DELETE FROM posts WHERE id = ?", Number(fd.get("id")));
+  await run("DELETE FROM posts WHERE id = ?", Number(fd.get("id")));
   revalidatePath("/", "layout");
 }
