@@ -21,7 +21,7 @@ export function UploadForm({ paperworkId, label = "Upload" }: { paperworkId: num
             onChange={(e) => setName(e.target.files?.[0]?.name ?? "")}
           />
         </label>
-        {name && <span className="max-w-[12rem] truncate text-xs text-slate-600">{name}</span>}
+        {name && <span className="max-w-[12rem] truncate text-xs text-ink-600">{name}</span>}
         {name && <SubmitButton className="btn-primary px-3 py-2" pendingText="Uploading…">{label}</SubmitButton>}
       </div>
     </ActionForm>
@@ -43,7 +43,7 @@ function Stars({ name, label }: { name: string; label: string }) {
             aria-label={`${n} star${n > 1 ? "s" : ""}`}
             onClick={() => setValue(n)}
             onMouseEnter={() => setHover(n)}
-            className="p-0.5 text-sun-400 transition active:scale-90"
+            className="p-0.5 text-volt-400 transition active:scale-90"
           >
             <StarIcon width={32} height={32} filled={n <= (hover || value)} />
           </button>
@@ -67,7 +67,7 @@ export function ReviewForm({ projectId }: { projectId: number }) {
         <span className="label">Tell us more</span>
         <textarea className="input min-h-28" name="body" maxLength={2000} placeholder="How was the quote, install day and your system so far?" />
       </label>
-      <SubmitButton className="btn-sun" pendingText="Posting…">Submit review</SubmitButton>
+      <SubmitButton className="btn-volt" pendingText="Posting…">Submit review</SubmitButton>
     </ActionForm>
   );
 }

@@ -140,7 +140,7 @@ export async function submitReview(_: FormState, fd: FormData): Promise<FormStat
     project.id, project.user_id, rating, title, body, installerRating,
   );
   revalidatePath(`/projects/${project.id}`);
-  return { ok: "Thanks for your review!" };
+  return { ok: "Thanks for the review. It goes straight to the team and your installer." };
 }
 
 /* ---------- referrals & payouts ---------- */
@@ -166,7 +166,7 @@ export async function submitReferral(_: FormState, fd: FormData): Promise<FormSt
     user.id, name, email || null, phone || null, suburb || null, interest, notes || null,
   );
   revalidatePath("/referrals");
-  return { ok: `Thanks! We'll reach out to ${name.split(" ")[0]} soon.` };
+  return { ok: `Sent. We'll reach out to ${name.split(" ")[0]} soon, and you can follow their progress below.` };
 }
 
 export async function saveBankDetails(_: FormState, fd: FormData): Promise<FormState> {

@@ -79,6 +79,10 @@ Free Render services sleep after 15 minutes without visitors; the next visit tak
 - **Reward amounts and payout minimum:** `src/lib/constants.ts`
 - **Company phone and email:** `COMPANY` in `src/lib/constants.ts`
 
+## Brand
+
+The look follows the AES capability statement and brand strategy: Ink `#181818` as the base, Yellow `#FCCD01` for actions and highlights, Lime `#8EF840` as the accent, heavy condensed Archivo headlines with Geist body text, and real install photos (`public/brand/photos`). Colour tokens live in `tailwind.config.ts`; shared styles (`.display`, `.eyebrow`, `.stat-num`, `.btn-volt`, `.grain`) are in `src/app/globals.css`.
+
 ## Tech
 
 Next.js 15 (App Router, server actions), React 19, Tailwind CSS 3, SQLite / Turso via `@libsql/client`, scrypt password hashing, httpOnly session cookies.

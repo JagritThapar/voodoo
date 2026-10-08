@@ -30,7 +30,7 @@ export default async function EarningsPage() {
 
   return (
     <>
-      <PageHeader title="Earnings" subtitle="Your referral rewards and payouts." />
+      <PageHeader eyebrow="Refer & earn" title="Your rewards." accent="Paid to your bank." subtitle="Rewards clear 14 days after an install, then you can withdraw them." />
       <SubTabs tabs={REFER_TABS} />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -42,11 +42,11 @@ export default async function EarningsPage() {
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card title="Withdraw">
-          <p className="-mt-1 mb-4 text-sm text-slate-600">
+          <p className="-mt-1 mb-4 text-sm text-ink-600">
             Withdraw your available balance to your Australian bank account. Minimum {aud(MIN_PAYOUT)}. Paid within 5 business days.
           </p>
           <ActionForm action={requestPayout} resetOnSuccess={false}>
-            <SubmitButton className="btn-sun w-full" pendingText="Requesting…">
+            <SubmitButton className="btn-volt w-full" pendingText="Requesting…">
               Withdraw {aud(w.available)}
             </SubmitButton>
           </ActionForm>
@@ -64,18 +64,18 @@ export default async function EarningsPage() {
         </Card>
       </div>
 
-      <h2 className="mb-3 mt-8 font-semibold text-navy-950">Reward history</h2>
+      <h2 className="mb-3 mt-8 font-semibold text-ink-900">Reward history</h2>
       {rows.length ? (
-        <div className="card divide-y divide-slate-100">
+        <div className="card divide-y divide-cream-200">
           {rows.map((r) => (
             <div key={r.id} className="flex items-center gap-3 p-4">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-navy-50 text-xs font-bold text-navy-700">L{r.level}</span>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime-50 text-xs font-bold text-leaf-700">L{r.level}</span>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-navy-950">{display(r)}&apos;s install</p>
-                <p className="text-xs text-slate-500">{r.level === 1 ? "Direct referral" : `Level ${r.level} network`} · {fmtDate(r.created_at)}</p>
+                <p className="truncate font-medium text-ink-900">{display(r)}&apos;s install</p>
+                <p className="text-xs text-ink-500">{r.level === 1 ? "Direct referral" : `Level ${r.level} network`} · {fmtDate(r.created_at)}</p>
               </div>
               <div className="text-right">
-                <p className="font-semibold tabular-nums text-navy-950">{aud(r.amount)}</p>
+                <p className="font-semibold tabular-nums text-ink-900">{aud(r.amount)}</p>
                 <Badge tone={COMMISSION_STATUS[r.status].tone}>{COMMISSION_STATUS[r.status].label}</Badge>
               </div>
             </div>
@@ -87,13 +87,13 @@ export default async function EarningsPage() {
 
       {payouts.length > 0 && (
         <>
-          <h2 className="mb-3 mt-8 font-semibold text-navy-950">Payouts</h2>
-          <div className="card divide-y divide-slate-100">
+          <h2 className="mb-3 mt-8 font-semibold text-ink-900">Payouts</h2>
+          <div className="card divide-y divide-cream-200">
             {payouts.map((p) => (
               <div key={p.id} className="flex items-center justify-between gap-3 p-4">
                 <div>
-                  <p className="font-medium text-navy-950">{aud(p.amount)}</p>
-                  <p className="text-xs text-slate-500">Requested {fmtDate(p.created_at)}{p.reference ? ` · Ref ${p.reference}` : ""}</p>
+                  <p className="font-medium text-ink-900">{aud(p.amount)}</p>
+                  <p className="text-xs text-ink-500">Requested {fmtDate(p.created_at)}{p.reference ? ` · Ref ${p.reference}` : ""}</p>
                 </div>
                 <Badge tone={PAYOUT_STATUS[p.status].tone}>{PAYOUT_STATUS[p.status].label}</Badge>
               </div>

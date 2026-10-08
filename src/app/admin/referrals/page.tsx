@@ -23,19 +23,19 @@ export default async function AdminReferrals() {
       <Card title={`Referral leads (${referrals.length})`}>
         <div className="-mx-4 overflow-x-auto sm:-mx-5">
           <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="text-xs uppercase text-slate-500">
+            <thead className="text-xs uppercase text-ink-500">
               <tr><th className="px-4 py-2 sm:px-5">Lead</th><th className="px-2 py-2">Contact</th><th className="px-2 py-2">Referred by</th><th className="px-2 py-2">Status</th></tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-cream-200">
               {referrals.map((r) => (
                 <tr key={r.id} className="align-top">
                   <td className="px-4 py-3 sm:px-5">
-                    <p className="font-medium text-navy-950">{r.name} {r.referred_user_id && <Badge tone="sky">Has account</Badge>}</p>
-                    <p className="text-xs text-slate-500">{[r.suburb, r.interest, fmtDate(r.created_at)].filter(Boolean).join(" · ")}</p>
-                    {r.notes && <p className="mt-1 text-xs text-slate-600">“{r.notes}”</p>}
+                    <p className="font-medium text-ink-900">{r.name} {r.referred_user_id && <Badge tone="sky">Has account</Badge>}</p>
+                    <p className="text-xs text-ink-500">{[r.suburb, r.interest, fmtDate(r.created_at)].filter(Boolean).join(" · ")}</p>
+                    {r.notes && <p className="mt-1 text-xs text-ink-600">“{r.notes}”</p>}
                   </td>
-                  <td className="px-2 py-3 text-slate-600">{r.phone && <a className="block underline" href={`tel:${r.phone}`}>{r.phone}</a>}{r.email && <a className="block underline" href={`mailto:${r.email}`}>{r.email}</a>}</td>
-                  <td className="px-2 py-3 text-slate-600">{r.referrer}</td>
+                  <td className="px-2 py-3 text-ink-600">{r.phone && <a className="block underline" href={`tel:${r.phone}`}>{r.phone}</a>}{r.email && <a className="block underline" href={`mailto:${r.email}`}>{r.email}</a>}</td>
+                  <td className="px-2 py-3 text-ink-600">{r.referrer}</td>
                   <td className="px-2 py-3">
                     <form action={adminSetReferral} className="flex items-center gap-2">
                       <input type="hidden" name="id" value={r.id} />
@@ -50,7 +50,7 @@ export default async function AdminReferrals() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-xs text-slate-500">Setting a lead to “Installed” creates rewards for the referrer and their upline. Leads with accounts update automatically as their project progresses.</p>
+        <p className="mt-3 text-xs text-ink-500">Setting a lead to “Installed” creates rewards for the referrer and their upline. Leads with accounts update automatically as their project progresses.</p>
       </Card>
 
       <Card
@@ -59,14 +59,14 @@ export default async function AdminReferrals() {
       >
         <div className="-mx-4 overflow-x-auto sm:-mx-5">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="text-xs uppercase text-slate-500">
+            <thead className="text-xs uppercase text-ink-500">
               <tr><th className="px-4 py-2 sm:px-5">Beneficiary</th><th className="px-2 py-2">From install</th><th className="px-2 py-2">Level</th><th className="px-2 py-2">Amount</th><th className="px-2 py-2">Status</th><th className="px-2 py-2" /></tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-cream-200">
               {commissions.map((c) => (
                 <tr key={c.id}>
                   <td className="px-4 py-2.5 font-medium sm:px-5">{c.beneficiary}</td>
-                  <td className="px-2 py-2.5 text-slate-600">{c.referral} · {fmtDate(c.created_at)}</td>
+                  <td className="px-2 py-2.5 text-ink-600">{c.referral} · {fmtDate(c.created_at)}</td>
                   <td className="px-2 py-2.5">L{c.level}</td>
                   <td className="px-2 py-2.5 tabular-nums">{aud(c.amount)}</td>
                   <td className="px-2 py-2.5"><Badge tone={COMMISSION_STATUS[c.status].tone}>{c.payout_id && c.status === "approved" ? "In payout" : COMMISSION_STATUS[c.status].label}</Badge></td>

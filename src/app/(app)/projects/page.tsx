@@ -13,14 +13,16 @@ export default async function ProjectsPage() {
   return (
     <>
       <PageHeader
-        title="My projects"
-        subtitle="Quotes, installs and paperwork for your home."
-        action={<Link href="/design" className="btn-primary hidden sm:inline-flex"><PlusIcon width={16} height={16} /> New quote</Link>}
+        eyebrow="My projects"
+        title="Quote to switch-on."
+        accent="All tracked."
+        subtitle="Quotes, installs and paperwork for your home, in one place."
+        action={<Link href="/design" className="btn-volt hidden sm:inline-flex"><PlusIcon width={16} height={16} /> New quote</Link>}
       />
       {projects.length ? (
         <div className="grid gap-3 md:grid-cols-2">{projects.map((p) => <ProjectCard key={p.id} project={p} />)}</div>
       ) : (
-        <Empty title="No projects yet" action={<Link href="/design" className="btn-sun">Design my system</Link>}>
+        <Empty title="No projects yet" action={<Link href="/design" className="btn-volt">Design my system</Link>}>
           Design a solar, battery, EV charger or hot water system to get your first quote.
         </Empty>
       )}

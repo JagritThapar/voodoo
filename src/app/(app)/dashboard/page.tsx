@@ -3,10 +3,10 @@ import { requireUser } from "@/lib/auth";
 import { all } from "@/lib/db";
 import { projectsFor } from "@/lib/projects";
 import { buildNetwork, flatten, wallet } from "@/lib/referrals";
-import { REWARD_LEVELS, aud, fmtDate } from "@/lib/constants";
+import { PROJECT_STATUS, REWARD_LEVELS, aud, fmtDate } from "@/lib/constants";
 import { Card, Stat } from "@/components/ui";
-import { ProjectCard } from "@/components/project";
-import { ChevronRight, StarIcon, SunIcon, TagIcon, UsersIcon } from "@/components/icons";
+import { ProjectCard, Stepper } from "@/components/project";
+import { BoltIcon, ChevronRight, StarIcon, TagIcon, UsersIcon } from "@/components/icons";
 
 export const metadata = { title: "Home" };
 
@@ -29,97 +29,120 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   );
   const w = await wallet(user.id);
   const network = flatten(await buildNetwork(user.id));
-  const posts = await all<Post>("SELECT id, kind, title, summary, published_at FROM posts WHERE expires_at IS NULL OR expires_at >= date('now') ORDER BY published_at DESC LIMIT 3");
+  const posts = await all<Post>("SELECT id, kind, title, summary, published_at FROM posts WHERE expires_at IS NULL OR expires_at >= date('now') ORDER BY published_at DESC LIMIT 4");
+
+  const current = active[0];
+  const st = current ? PROJECT_STATUS[current.status] : null;
+  const offer = posts.find((p) => p.kind === "offer");
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium text-slate-500">{welcome ? "Welcome aboard," : "G'day,"}</p>
-        <h1 className="text-3xl font-bold tracking-tight text-navy-950">{user.first_name} 👋</h1>
-      </div>
-
-      {welcome && (
-        <div className="rounded-2xl bg-gradient-to-br from-navy-900 to-navy-700 p-5 text-white">
-          <p className="font-semibold">Your account is ready.</p>
-          <p className="mt-1 text-sm text-navy-100">Start by designing your system. You&apos;ll see an instant estimate including rebates, and we&apos;ll send you a firm quote.</p>
-          <Link href="/design" className="btn-sun mt-4">Design my system</Link>
-        </div>
-      )}
-
-      {(needsReview.length > 0 || actions.length > 0) && (
-        <div className="space-y-2">
-          {actions.map((a) => (
-            <Link key={a.project_id} href={`/projects/${a.project_id}#paperwork`} className="flex items-center gap-3 rounded-2xl bg-sun-50 p-4 ring-1 ring-sun-300/60">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-sun-400 font-bold text-navy-950">{a.n}</span>
-              <span className="flex-1 text-sm font-medium text-navy-950">Paperwork needs your attention</span>
-              <ChevronRight className="text-slate-500" />
-            </Link>
-          ))}
-          {needsReview.map((p) => (
-            <Link key={p.id} href={`/projects/${p.id}#review`} className="flex items-center gap-3 rounded-2xl bg-leaf-50 p-4 ring-1 ring-leaf-100">
-              <StarIcon className="text-sun-500" filled />
-              <span className="flex-1 text-sm font-medium text-navy-950">How did your {p.title} install go? Leave a review</span>
-              <ChevronRight className="text-slate-500" />
-            </Link>
-          ))}
-        </div>
-      )}
-
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-semibold text-navy-950">My projects</h2>
-          <Link href="/projects" className="text-sm font-semibold text-navy-700">See all</Link>
-        </div>
-        {active.length ? (
-          <div className="grid gap-3 md:grid-cols-2">{active.slice(0, 2).map((p) => <ProjectCard key={p.id} project={p} />)}</div>
+    <div className="space-y-8">
+      {/* Hero */}
+      <section className="grain -mx-4 -mt-6 overflow-hidden bg-ink-900 px-4 pb-8 pt-8 text-white sm:mx-0 sm:mt-0 sm:rounded-brand sm:p-8">
+        <p className="eyebrow text-volt-400">{welcome ? "Welcome aboard" : "G'day"}</p>
+        <h1 className="display mt-3 text-5xl sm:text-6xl">
+          {user.first_name}.
+          <span className="block text-lime-400">{current ? st!.step + "." : "Let's get started."}</span>
+        </h1>
+        {current ? (
+          <div className="mt-6 max-w-2xl">
+            <p className="text-ink-300">
+              <span className="font-bold text-white">{current.title}</span> · {st!.label}
+              {current.install_date && current.status === "scheduled" ? ` · install ${fmtDate(current.install_date)}` : ""}
+            </p>
+            <div className="mt-5 rounded-2xl bg-white/[.06] p-4">
+              <Stepper status={current.status} dark />
+            </div>
+            <Link href={`/projects/${current.id}`} className="btn-volt mt-5">View project <ChevronRight width={18} height={18} /></Link>
+          </div>
         ) : (
-          <Link href="/design" className="card flex items-center gap-4 p-5 hover:border-slate-300">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-sun-100 text-sun-600"><SunIcon width={26} height={26} /></span>
-            <span className="flex-1">
-              <span className="block font-semibold text-navy-950">Design your system</span>
-              <span className="text-sm text-slate-600">Solar, battery, EV charging & hot water, with an instant estimate.</span>
-            </span>
-            <ChevronRight className="text-slate-400" />
-          </Link>
+          <div className="mt-5 max-w-lg">
+            <p className="text-pretty text-ink-300">Design your system and see a price after rebates in a couple of minutes. We&apos;ll follow up with a fixed written quote.</p>
+            <Link href="/design" className="btn-volt mt-5">Design my system <ChevronRight width={18} height={18} /></Link>
+          </div>
         )}
       </section>
 
+      {(needsReview.length > 0 || actions.length > 0) && (
+        <section aria-label="To do" className="space-y-2">
+          {actions.map((a) => (
+            <Link key={a.project_id} href={`/projects/${a.project_id}#paperwork`} className="group flex items-center gap-4 rounded-brand bg-volt-400 p-4 text-ink-900 transition hover:bg-volt-300">
+              <span className="stat-num grid h-11 w-11 place-items-center rounded-xl bg-ink-900 text-xl text-volt-400">{a.n}</span>
+              <span className="flex-1 font-bold">Paperwork needs you</span>
+              <ChevronRight className="transition group-hover:translate-x-0.5" />
+            </Link>
+          ))}
+          {needsReview.map((p) => (
+            <Link key={p.id} href={`/projects/${p.id}#review`} className="group flex items-center gap-4 rounded-brand bg-lime-400 p-4 text-ink-900 transition hover:bg-lime-300">
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-ink-900 text-volt-400"><StarIcon filled /></span>
+              <span className="flex-1 font-bold">How did your {p.title} install go?</span>
+              <ChevronRight className="transition group-hover:translate-x-0.5" />
+            </Link>
+          ))}
+        </section>
+      )}
+
+      {active.length > 1 && (
+        <section>
+          <div className="mb-3 flex items-end justify-between">
+            <h2 className="text-xl font-bold tracking-tight">Your projects</h2>
+            <Link href="/projects" className="text-sm font-bold text-leaf-700 hover:underline">See all</Link>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">{active.slice(0, 2).map((p) => <ProjectCard key={p.id} project={p} />)}</div>
+        </section>
+      )}
+
       <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-semibold text-navy-950">Referral rewards</h2>
-          <Link href="/earnings" className="text-sm font-semibold text-navy-700">Earnings</Link>
+        <div className="mb-3 flex items-end justify-between">
+          <h2 className="text-xl font-bold tracking-tight">Referral rewards</h2>
+          <Link href="/earnings" className="text-sm font-bold text-leaf-700 hover:underline">Earnings</Link>
         </div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <Stat accent label="Available" value={aud(w.available)} hint="Ready to withdraw" />
           <Stat label="Clearing" value={aud(w.pending)} hint="From recent installs" />
           <Stat label="Lifetime" value={aud(w.lifetime)} />
           <Stat label="Network" value={network.length} hint={`${network.filter((n) => n.level === 1).length} direct`} />
         </div>
-        <Link href="/referrals" className="mt-3 flex items-center gap-3 rounded-2xl bg-sun-400 p-4 text-navy-950 transition hover:bg-sun-500">
-          <UsersIcon />
-          <span className="flex-1 font-semibold">Refer a friend and earn up to {aud(REWARD_LEVELS[0].amount)}</span>
-          <ChevronRight />
+        <Link href="/referrals" className="group mt-3 flex items-center gap-4 rounded-brand bg-ink-900 p-4 text-white transition hover:bg-ink-800 sm:p-5">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-volt-400 text-ink-900"><UsersIcon /></span>
+          <span className="flex-1">
+            <span className="block font-bold">Refer a mate</span>
+            <span className="text-sm text-ink-300">Earn {aud(REWARD_LEVELS[0].amount)} when they install, plus rewards from their referrals.</span>
+          </span>
+          <ChevronRight className="text-volt-400 transition group-hover:translate-x-0.5" />
         </Link>
       </section>
 
-      <Card title="Latest news & offers" action={<Link href="/news" className="text-sm font-semibold text-navy-700">All</Link>}>
-        <ul className="divide-y divide-slate-100">
-          {posts.map((p) => (
-            <li key={p.id}>
-              <Link href={`/news/${p.id}`} className="flex gap-3 py-3">
-                <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg ${p.kind === "offer" ? "bg-sun-100 text-sun-600" : "bg-navy-50 text-navy-700"}`}>
-                  {p.kind === "offer" ? <TagIcon width={16} height={16} /> : <SunIcon width={16} height={16} />}
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-medium text-navy-950">{p.title}</span>
-                  <span className="line-clamp-1 text-sm text-slate-500">{p.summary}</span>
-                  <span className="text-xs text-slate-400">{fmtDate(p.published_at)}</span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Card>
+      <section className="grid gap-4 lg:grid-cols-[1fr_1.3fr]">
+        {offer && (
+          <Link href={`/news/${offer.id}`} className="group relative isolate flex min-h-56 flex-col justify-end overflow-hidden rounded-brand p-5 text-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/photos/home-dusk.jpg" alt="" className="absolute inset-0 -z-20 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+            <span className="absolute inset-0 -z-10 bg-gradient-to-t from-ink-900 via-ink-900/60 to-transparent" />
+            <span className="eyebrow text-volt-400">Offer</span>
+            <span className="mt-2 text-2xl font-bold leading-tight tracking-tight">{offer.title}</span>
+            <span className="mt-1 line-clamp-2 text-sm text-ink-200">{offer.summary}</span>
+          </Link>
+        )}
+        <Card title="News & offers" action={<Link href="/news" className="text-sm font-bold text-leaf-700 hover:underline">All</Link>}>
+          <ul className="divide-y divide-cream-200">
+            {posts.filter((p) => p.id !== offer?.id).map((p) => (
+              <li key={p.id}>
+                <Link href={`/news/${p.id}`} className="group flex gap-3 py-3">
+                  <span className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl ${p.kind === "offer" ? "bg-volt-400 text-ink-900" : "bg-ink-900 text-lime-400"}`}>
+                    {p.kind === "offer" ? <TagIcon width={16} height={16} /> : <BoltIcon width={16} height={16} />}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-bold leading-snug text-ink-900 group-hover:underline">{p.title}</span>
+                    <span className="line-clamp-1 text-sm text-ink-500">{p.summary}</span>
+                    <span className="text-xs text-ink-400">{fmtDate(p.published_at)}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </section>
     </div>
   );
 }

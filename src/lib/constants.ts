@@ -3,10 +3,31 @@
 export const COMPANY = {
   name: "Aussie Energy Savers",
   short: "AES",
+  tagline: ["Smart energy.", "Made easy."],
   website: "https://www.aussieenergysavers.com.au",
-  phone: "1300 000 000", // TODO: replace with the real AES number
+  phone: "03 7056 9256",
   email: "hello@aussieenergysavers.com.au",
+  address: "4 Gilguy Place, South Morang VIC",
+  abn: "58 681 100 676",
 };
+
+/** Proof points from the AES capability statement. */
+export const PROOF = [
+  { value: "500+", label: "Homes upgraded" },
+  { value: "10MW+", label: "Solar delivered" },
+  { value: "28 yrs", label: "Combined experience" },
+  { value: "10+", label: "Install crews" },
+];
+
+/** Written warranties, as listed in the capability statement. */
+export const WARRANTIES = [
+  { item: "Panels", years: "25+ yrs", pct: 100 },
+  { item: "Batteries", years: "10+ yrs", pct: 40 },
+  { item: "Air conditioning", years: "7+ yrs", pct: 28 },
+  { item: "Water filtration", years: "7 yrs", pct: 28 },
+  { item: "Heat pumps", years: "5+ yrs", pct: 20 },
+  { item: "Our workmanship", years: "5 yrs", pct: 20 },
+];
 
 /**
  * Multi-level referral rewards, paid when a referred customer's system is installed.
@@ -32,12 +53,12 @@ export const PROJECT_FLOW = ["requested", "quoted", "accepted", "scheduled", "in
 export type ProjectStatus = (typeof PROJECT_FLOW)[number] | "declined" | "cancelled";
 
 export const PROJECT_STATUS: Record<ProjectStatus, { label: string; step: string; tone: Tone }> = {
-  requested: { label: "Quote requested", step: "Quote requested", tone: "amber" },
-  quoted: { label: "Quote ready", step: "Quote ready", tone: "sky" },
-  accepted: { label: "Quote accepted", step: "Quote accepted", tone: "sky" },
-  scheduled: { label: "Install scheduled", step: "Install booked", tone: "violet" },
-  installed: { label: "Installed", step: "Installed", tone: "green" },
-  connected: { label: "System live", step: "Grid connected", tone: "green" },
+  requested: { label: "Quote requested", step: "Assess & design", tone: "amber" },
+  quoted: { label: "Quote ready", step: "Your quote", tone: "sky" },
+  accepted: { label: "Quote accepted", step: "Approvals & rebates", tone: "sky" },
+  scheduled: { label: "Install booked", step: "Install", tone: "violet" },
+  installed: { label: "Installed", step: "Compliance & handover", tone: "green" },
+  connected: { label: "System live", step: "You save", tone: "green" },
   declined: { label: "Declined", step: "Declined", tone: "slate" },
   cancelled: { label: "Cancelled", step: "Cancelled", tone: "slate" },
 };
@@ -50,7 +71,7 @@ export const REFERRAL_STATUS: Record<ReferralStatus, { label: string; tone: Tone
   joined: { label: "Joined app", tone: "sky" },
   quote_requested: { label: "Quote requested", tone: "amber" },
   quoted: { label: "Quoted", tone: "violet" },
-  installed: { label: "Installed — reward earned", tone: "green" },
+  installed: { label: "Installed", tone: "green" },
   lost: { label: "Not proceeding", tone: "rose" },
 };
 

@@ -14,16 +14,16 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   const external = post.cta_url?.startsWith("http");
   return (
     <article className="mx-auto max-w-2xl">
-      <PageHeader back="/news" title={post.title} subtitle={<span className="flex items-center gap-2"><Badge tone={post.kind === "offer" ? "amber" : "sky"}>{post.kind === "offer" ? "Offer" : "News"}</Badge> {fmtDate(post.published_at)}</span>} />
+      <PageHeader keepCase back="/news" title={post.title} subtitle={<span className="flex items-center gap-2"><Badge tone={post.kind === "offer" ? "amber" : "sky"}>{post.kind === "offer" ? "Offer" : "News"}</Badge> {fmtDate(post.published_at)}</span>} />
       <div className="card p-5 sm:p-6">
-        <p className="text-lg font-medium text-navy-950">{post.summary}</p>
-        <div className="mt-4 space-y-3 whitespace-pre-line text-slate-700">{post.body}</div>
-        {post.expires_at && <p className="mt-4 text-sm font-medium text-sun-600">Offer ends {fmtDate(post.expires_at)}.</p>}
+        <p className="text-lg font-medium text-ink-900">{post.summary}</p>
+        <div className="mt-4 space-y-3 whitespace-pre-line text-ink-700">{post.body}</div>
+        {post.expires_at && <p className="mt-4 text-sm font-medium text-volt-700">Offer ends {fmtDate(post.expires_at)}.</p>}
         {post.cta_url && (
           external ? (
-            <a href={post.cta_url} target="_blank" rel="noreferrer" className="btn-sun mt-6">{post.cta_label ?? "Learn more"}</a>
+            <a href={post.cta_url} target="_blank" rel="noreferrer" className="btn-volt mt-6">{post.cta_label ?? "Learn more"}</a>
           ) : (
-            <Link href={post.cta_url} className="btn-sun mt-6">{post.cta_label ?? "Learn more"}</Link>
+            <Link href={post.cta_url} className="btn-volt mt-6">{post.cta_label ?? "Learn more"}</Link>
           )
         )}
       </div>

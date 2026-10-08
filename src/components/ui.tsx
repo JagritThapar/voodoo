@@ -3,46 +3,57 @@ import type { ReactNode } from "react";
 import type { Tone } from "@/lib/constants";
 import { ChevronLeft } from "./icons";
 
+// Square-ish status flags rather than generic pills; each tone stays inside the brand palette.
 const TONES: Record<Tone, string> = {
-  amber: "bg-sun-50 text-sun-600 ring-sun-300/60",
-  sky: "bg-sky-50 text-sky-700 ring-sky-200",
-  violet: "bg-violet-50 text-violet-700 ring-violet-200",
-  green: "bg-leaf-50 text-leaf-700 ring-leaf-100",
-  slate: "bg-slate-100 text-slate-600 ring-slate-200",
-  rose: "bg-rose-50 text-rose-700 ring-rose-200",
+  amber: "bg-volt-400 text-ink-900",
+  sky: "bg-ink-900 text-white",
+  violet: "bg-ink-900 text-volt-400",
+  green: "bg-lime-400 text-ink-900",
+  slate: "bg-cream-200 text-ink-600",
+  rose: "bg-rose-100 text-rose-800",
 };
 
 export function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
   return (
-    <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${TONES[tone]}`}>
+    <span className={`inline-flex items-center whitespace-nowrap rounded-md px-2 py-1 text-[11px] font-bold uppercase leading-none tracking-wider ${TONES[tone]}`}>
       {children}
     </span>
   );
 }
 
-export function PageHeader({ title, subtitle, back, action }: { title: string; subtitle?: ReactNode; back?: string; action?: ReactNode }) {
+/**
+ * Brand headline: two lines in the capability-statement style (first line ink, second line accent).
+ * Pass `accent` for the second line, e.g. title="Refer &" accent="earn."
+ */
+export function PageHeader({
+  title, accent, eyebrow, subtitle, back, action, keepCase,
+}: { title: string; accent?: string; eyebrow?: string; subtitle?: ReactNode; back?: string; action?: ReactNode; /** For user/product text such as "13.2 kW Solar": no uppercase. */ keepCase?: boolean }) {
   return (
-    <div className="mb-5 flex items-end justify-between gap-4">
+    <header className="mb-6 flex items-end justify-between gap-4">
       <div className="min-w-0">
         {back && (
-          <Link href={back} className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-800">
+          <Link href={back} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 transition hover:text-ink-900">
             <ChevronLeft width={16} height={16} /> Back
           </Link>
         )}
-        <h1 className="text-2xl font-bold tracking-tight text-navy-950 sm:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1 text-slate-600">{subtitle}</p>}
+        {eyebrow && <p className="eyebrow mb-2 text-leaf-700">{eyebrow}</p>}
+        <h1 className={`display text-balance text-ink-900 ${keepCase ? "text-3xl normal-case sm:text-4xl" : "text-4xl sm:text-5xl"}`}>
+          {title}
+          {accent && <span className="block text-leaf-600">{accent}</span>}
+        </h1>
+        {subtitle && <p className="mt-3 max-w-xl text-pretty text-ink-600">{subtitle}</p>}
       </div>
       {action}
-    </div>
+    </header>
   );
 }
 
 export function Card({ children, className = "", title, action }: { children: ReactNode; className?: string; title?: ReactNode; action?: ReactNode }) {
   return (
-    <section className={`card p-4 sm:p-5 ${className}`}>
+    <section className={`card p-4 sm:p-6 ${className}`}>
       {(title || action) && (
-        <div className="mb-3 flex items-center justify-between gap-3">
-          {title && <h2 className="font-semibold text-navy-950">{title}</h2>}
+        <div className="mb-4 flex items-center justify-between gap-3">
+          {title && <h2 className="text-lg font-bold tracking-tight text-ink-900">{title}</h2>}
           {action}
         </div>
       )}
@@ -51,22 +62,23 @@ export function Card({ children, className = "", title, action }: { children: Re
   );
 }
 
+/** Big-number tile. `accent` renders the ink version with a lime figure, like the capability statement stats. */
 export function Stat({ label, value, hint, accent }: { label: string; value: ReactNode; hint?: ReactNode; accent?: boolean }) {
   return (
-    <div className={`rounded-2xl p-4 ${accent ? "bg-navy-900 text-white" : "card"}`}>
-      <div className={`text-xs font-medium uppercase tracking-wide ${accent ? "text-navy-100" : "text-slate-500"}`}>{label}</div>
-      <div className="mt-1 text-2xl font-bold tabular-nums">{value}</div>
-      {hint && <div className={`mt-0.5 text-xs ${accent ? "text-navy-100" : "text-slate-500"}`}>{hint}</div>}
+    <div className={`rounded-brand p-4 sm:p-5 ${accent ? "grain bg-ink-900 text-white" : "card"}`}>
+      <div className={`eyebrow ${accent ? "text-volt-400" : "text-ink-500"}`}>{label}</div>
+      <div className={`stat-num mt-2 text-3xl sm:text-4xl ${accent ? "text-lime-400" : "text-ink-900"}`}>{value}</div>
+      {hint && <div className={`mt-1.5 text-xs ${accent ? "text-ink-300" : "text-ink-500"}`}>{hint}</div>}
     </div>
   );
 }
 
 export function Empty({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center">
-      <p className="font-semibold text-navy-950">{title}</p>
-      {children && <p className="mx-auto mt-1 max-w-sm text-sm text-slate-600">{children}</p>}
-      {action && <div className="mt-4">{action}</div>}
+    <div className="rounded-brand border-2 border-dashed border-cream-300 px-6 py-12 text-center">
+      <p className="display text-2xl text-ink-900">{title}</p>
+      {children && <p className="mx-auto mt-2 max-w-sm text-pretty text-sm text-ink-600">{children}</p>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }
@@ -76,7 +88,26 @@ export function Field({ label, children, hint }: { label: string; children: Reac
     <label className="block">
       <span className="label">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-ink-500">{hint}</span>}
     </label>
+  );
+}
+
+/** Lime check-circle list, as used for "The AES way" on the capability statement. */
+export function CheckList({ items, dark }: { items: { title: string; text?: string }[]; dark?: boolean }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((i) => (
+        <li key={i.title} className="flex gap-3">
+          <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-lime-400 text-ink-900">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+          </span>
+          <span>
+            <span className={`block font-bold ${dark ? "text-white" : "text-ink-900"}`}>{i.title}</span>
+            {i.text && <span className={`block text-sm ${dark ? "text-ink-300" : "text-ink-600"}`}>{i.text}</span>}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }

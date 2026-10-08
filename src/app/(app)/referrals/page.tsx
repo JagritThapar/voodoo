@@ -23,17 +23,17 @@ export default async function ReferralsPage() {
 
   return (
     <>
-      <PageHeader title="Refer & earn" subtitle="Share Aussie Energy Savers and get paid when your friends install." />
+      <PageHeader eyebrow="Refer & earn" title="Bring a mate." accent="Get paid." subtitle="Share your link or pass on a friend's details. You earn when they install, and when the people they refer install too." />
       <SubTabs tabs={REFER_TABS} />
 
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <div className="space-y-4">
           <Card title="Share your link">
             <ShareReferral code={user.referral_code} link={link} firstName={user.first_name} />
           </Card>
 
           <Card title="Refer someone directly">
-            <p className="-mt-1 mb-4 text-sm text-slate-600">Pass on their details and our team will give them a friendly call. You&apos;ll see their progress below.</p>
+            <p className="-mt-1 mb-4 text-sm text-ink-600">Pass on their details and our team will give them a friendly call. You&apos;ll see their progress below.</p>
             <ActionForm action={submitReferral}>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label="Friend's name"><input className="input" name="name" required /></Field>
@@ -45,40 +45,42 @@ export default async function ReferralsPage() {
                 <select className="input" name="interest" defaultValue="Solar + Battery">{INTERESTS.map((i) => <option key={i}>{i}</option>)}</select>
               </Field>
               <Field label="Notes (optional)"><textarea className="input min-h-20" name="notes" maxLength={500} placeholder="Best time to call, anything we should know…" /></Field>
-              <label className="flex items-start gap-3 text-sm text-slate-700">
-                <input type="checkbox" name="consent" className="mt-0.5 h-5 w-5 shrink-0 accent-navy-900" />
+              <label className="flex items-start gap-3 text-sm text-ink-700">
+                <input type="checkbox" name="consent" className="mt-0.5 h-5 w-5 shrink-0 accent-ink-900" />
                 My friend has agreed to be contacted by Aussie Energy Savers.
               </label>
-              <SubmitButton className="btn-primary w-full sm:w-auto" pendingText="Sending…">Send referral</SubmitButton>
+              <SubmitButton className="btn-volt w-full sm:w-auto" pendingText="Sending…">Send referral</SubmitButton>
             </ActionForm>
           </Card>
         </div>
 
-        <Card title="How you earn">
-          <p className="-mt-1 mb-4 text-sm text-slate-600">
+        <section className="grain rounded-brand bg-ink-900 p-5 text-white sm:p-6">
+          <p className="eyebrow text-volt-400">How you earn</p>
+          <h2 className="display mb-4 mt-2 text-3xl">Paid on installs.<span className="block text-lime-400">Three levels deep.</span></h2>
+          <p className="mb-5 text-sm text-ink-300">
             Rewards are paid when a referred household&apos;s system is <strong>installed</strong>, and you keep earning when the people you refer refer others.
           </p>
           <ol className="space-y-2">
             {REWARD_LEVELS.map((l) => (
-              <li key={l.level} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-navy-900 text-sm font-bold text-white">L{l.level}</span>
+              <li key={l.level} className="flex items-center gap-3 rounded-xl bg-white/[.06] p-3">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-lime-400 font-display text-sm font-black text-ink-900">L{l.level}</span>
                 <span className="flex-1 text-sm">
-                  <span className="block font-semibold text-navy-950">{l.label}</span>
-                  <span className="text-slate-500">{l.level === 1 ? "Someone you referred installs" : `An install ${l.level} steps down your network`}</span>
+                  <span className="block font-bold text-white">{l.label}</span>
+                  <span className="text-ink-400">{l.level === 1 ? "Someone you referred installs" : `An install ${l.level} steps down your network`}</span>
                 </span>
-                <span className="text-lg font-bold tabular-nums text-leaf-600">{aud(l.amount)}</span>
+                <span className="stat-num text-3xl text-volt-400">{aud(l.amount)}</span>
               </li>
             ))}
           </ol>
-          <ul className="mt-4 space-y-1 text-xs text-slate-500">
+          <ul className="mt-5 space-y-1 text-xs text-ink-400">
             <li>• Rewards clear 14 days after install, then you can withdraw to your bank.</li>
             <li>• No rewards are paid for sign-ups alone, only for completed installs.</li>
             <li>• Referred customers must be new to Aussie Energy Savers.</li>
           </ul>
-        </Card>
+        </section>
       </div>
 
-      <h2 className="mb-3 mt-8 font-semibold text-navy-950">Your referrals ({referrals.length})</h2>
+      <h2 className="mb-3 mt-8 font-semibold text-ink-900">Your referrals ({referrals.length})</h2>
       {referrals.length ? (
         <div className="space-y-2">
           {referrals.map((r) => {
@@ -87,17 +89,17 @@ export default async function ReferralsPage() {
               <div key={r.id} className="card p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-semibold text-navy-950">{r.name}</p>
-                    <p className="text-sm text-slate-500">{[r.suburb, r.interest, `referred ${fmtDate(r.created_at)}`].filter(Boolean).join(" · ")}</p>
+                    <p className="font-semibold text-ink-900">{r.name}</p>
+                    <p className="text-sm text-ink-500">{[r.suburb, r.interest, `referred ${fmtDate(r.created_at)}`].filter(Boolean).join(" · ")}</p>
                   </div>
                   <div className="text-right">
                     <Badge tone={REFERRAL_STATUS[r.status].tone}>{REFERRAL_STATUS[r.status].label}</Badge>
-                    {r.earned ? <p className="mt-1 text-sm font-semibold text-leaf-600">+{aud(r.earned)}</p> : null}
+                    {r.earned ? <p className="mt-1 text-sm font-semibold text-leaf-700">+{aud(r.earned)}</p> : null}
                   </div>
                 </div>
                 {idx >= 0 && (
                   <div className="mt-3 flex gap-1">
-                    {REFERRAL_FLOW.map((s, i) => <span key={s} className={`h-1.5 flex-1 rounded-full ${i <= idx ? "bg-leaf-500" : "bg-slate-200"}`} />)}
+                    {REFERRAL_FLOW.map((s, i) => <span key={s} className={`h-1.5 flex-1 rounded-full ${i <= idx ? "bg-lime-400" : "bg-cream-200"}`} />)}
                   </div>
                 )}
               </div>

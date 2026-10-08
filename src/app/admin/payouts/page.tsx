@@ -25,16 +25,16 @@ export default async function AdminPayouts() {
             <Card key={p.id}>
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-2xl font-bold tabular-nums text-navy-950">{aud(p.amount)}</p>
-                  <p className="text-sm text-slate-600">{p.name} · {p.email}</p>
-                  <p className="text-xs text-slate-500">Requested {fmtDate(p.created_at)}</p>
+                  <p className="text-2xl font-bold tabular-nums text-ink-900">{aud(p.amount)}</p>
+                  <p className="text-sm text-ink-600">{p.name} · {p.email}</p>
+                  <p className="text-xs text-ink-500">Requested {fmtDate(p.created_at)}</p>
                 </div>
                 <Badge tone="amber">To pay</Badge>
               </div>
-              <dl className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 font-mono text-sm">
-                <div><dt className="font-sans text-xs text-slate-500">Name</dt><dd>{p.account_name}</dd></div>
-                <div><dt className="font-sans text-xs text-slate-500">BSB</dt><dd>{p.bsb}</dd></div>
-                <div><dt className="font-sans text-xs text-slate-500">Account</dt><dd>{p.account_number}</dd></div>
+              <dl className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-cream-50 p-3 font-mono text-sm">
+                <div><dt className="font-sans text-xs text-ink-500">Name</dt><dd>{p.account_name}</dd></div>
+                <div><dt className="font-sans text-xs text-ink-500">BSB</dt><dd>{p.bsb}</dd></div>
+                <div><dt className="font-sans text-xs text-ink-500">Account</dt><dd>{p.account_number}</dd></div>
               </dl>
               <div className="mt-3 flex flex-wrap gap-2">
                 <form action={adminProcessPayout} className="flex flex-1 gap-2">
@@ -56,10 +56,10 @@ export default async function AdminPayouts() {
 
       {done.length > 0 && (
         <Card title="History">
-          <ul className="divide-y divide-slate-100 text-sm">
+          <ul className="divide-y divide-cream-200 text-sm">
             {done.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-3 py-2.5">
-                <span>{p.name} · {aud(p.amount)} <span className="text-slate-500">· {fmtDate(p.processed_at)}{p.reference ? ` · ${p.reference}` : ""}</span></span>
+                <span>{p.name} · {aud(p.amount)} <span className="text-ink-500">· {fmtDate(p.processed_at)}{p.reference ? ` · ${p.reference}` : ""}</span></span>
                 <Badge tone={PAYOUT_STATUS[p.status].tone}>{PAYOUT_STATUS[p.status].label}</Badge>
               </li>
             ))}

@@ -40,9 +40,9 @@ export default async function AdminNews() {
             <div key={p.id} className="card flex items-start justify-between gap-3 p-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2"><Badge tone={p.kind === "offer" ? "amber" : "sky"}>{p.kind}</Badge>{expired && <Badge tone="slate">Expired</Badge>}</div>
-                <p className="mt-1 font-medium text-navy-950">{p.title}</p>
-                <p className="line-clamp-2 text-sm text-slate-600">{p.summary}</p>
-                <p className="text-xs text-slate-400">{fmtDate(p.published_at)}{p.expires_at ? ` → ${fmtDate(p.expires_at)}` : ""}</p>
+                <p className="mt-1 font-medium text-ink-900">{p.title}</p>
+                <p className="line-clamp-2 text-sm text-ink-600">{p.summary}</p>
+                <p className="text-xs text-ink-400">{fmtDate(p.published_at)}{p.expires_at ? ` → ${fmtDate(p.expires_at)}` : ""}</p>
               </div>
               <form action={adminDeletePost}><input type="hidden" name="id" value={p.id} /><button className="btn-danger px-2.5 py-1.5 text-xs">Delete</button></form>
             </div>

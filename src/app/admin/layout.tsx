@@ -10,16 +10,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   await requireAdmin();
   return (
     <div className="min-h-dvh">
-      <header className="bg-navy-950 px-4 pt-4 sm:px-6">
+      <header className="grain bg-ink-900 px-4 pt-4 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <div className="flex items-center justify-between gap-3 pb-3">
             <Link href="/admin" className="flex items-center gap-3">
-              <Logo className="text-white" />
-              <span className="rounded-md bg-sun-400 px-1.5 py-0.5 text-[10px] font-bold uppercase text-navy-950">Admin</span>
+              <Logo reverse className="h-11" />
+              <span className="rounded-md bg-volt-400 px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-ink-900">Admin</span>
             </Link>
             <div className="flex items-center gap-2 text-sm">
-              <Link href="/dashboard" className="hidden text-navy-100 hover:text-white sm:inline">Customer view</Link>
-              <form action={logout}><button className="rounded-lg px-3 py-1.5 text-navy-100 hover:bg-white/10 hover:text-white">Sign out</button></form>
+              <Link href="/dashboard" className="hidden text-ink-300 hover:text-white sm:inline">Customer view</Link>
+              <form action={logout}><button className="rounded-lg px-3 py-1.5 text-ink-300 hover:bg-white/10 hover:text-white">Sign out</button></form>
             </div>
           </div>
           <div className="pb-2"><AdminNav /></div>

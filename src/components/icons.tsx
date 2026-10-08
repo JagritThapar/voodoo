@@ -35,19 +35,22 @@ export const BoltIcon = (p: P) => (<svg {...base(p)}><path d="M13 2 4 14h7l-1 8 
 export const BatteryIcon = (p: P) => (<svg {...base(p)}><rect x="2" y="7" width="17" height="10" rx="2" /><path d="M22 11v2M6 10v4M10 10v4" /></svg>);
 export const CarIcon = (p: P) => (<svg {...base(p)}><path d="M5 17h14M3 17v-4l2-5h14l2 5v4" /><circle cx="7.5" cy="17.5" r="1.5" /><circle cx="16.5" cy="17.5" r="1.5" /></svg>);
 export const DropIcon = (p: P) => (<svg {...base(p)}><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z" /></svg>);
+export const FanIcon = (p: P) => (<svg {...base(p)}><rect x="3" y="5" width="18" height="9" rx="2" /><path d="M7 10h10M8 18c0-1.5 1-2 1-3M12 19c0-1.5 1-2.5 1-4M16 18c0-1.5-1-2-1-3" /></svg>);
+export const FilterIcon = (p: P) => (<svg {...base(p)}><path d="M12 3s5.5 6 5.5 10a5.5 5.5 0 0 1-11 0C6.5 9 12 3 12 3z" /><path d="M9.5 14a2.5 2.5 0 0 0 2.5 2.5" /><path d="M4 21h16" /></svg>);
 export const TagIcon = (p: P) => (<svg {...base(p)}><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z" /><circle cx="7.5" cy="7.5" r="1.5" /></svg>);
 export const LogoutIcon = (p: P) => (<svg {...base(p)}><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11" /></svg>);
 export const ShieldIcon = (p: P) => (<svg {...base(p)}><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" /></svg>);
 
-export function Logo({ className = "" }: { className?: string }) {
+/** The AES wordmark. `reverse` is the white-text version for ink backgrounds. */
+export function Logo({ reverse = false, className = "h-10" }: { reverse?: boolean; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 font-bold tracking-tight ${className}`}>
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-sun-400 text-navy-950">
-        <SunIcon width={18} height={18} strokeWidth={2.2} />
-      </span>
-      <span className="leading-none">
-        Aussie Energy <span className="text-sun-500">Savers</span>
-      </span>
-    </span>
+    // eslint-disable-next-line @next/next/no-img-element -- tiny static brand asset
+    <img
+      src={reverse ? "/brand/aes-logo-reverse.png" : "/brand/aes-logo.png"}
+      alt="Aussie Energy Savers"
+      width={234}
+      height={150}
+      className={`w-auto ${className}`}
+    />
   );
 }

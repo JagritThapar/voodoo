@@ -4,7 +4,7 @@ import type { Project } from "@/lib/projects";
 import { Badge } from "./ui";
 import { CheckIcon, ChevronRight } from "./icons";
 
-export function Stepper({ status, compact }: { status: ProjectStatus; compact?: boolean }) {
+export function Stepper({ status, compact, dark }: { status: ProjectStatus; compact?: boolean; dark?: boolean }) {
   const idx = PROJECT_FLOW.indexOf(status as (typeof PROJECT_FLOW)[number]);
   if (idx < 0) return null;
   return (
@@ -14,16 +14,16 @@ export function Stepper({ status, compact }: { status: ProjectStatus; compact?: 
         const current = i === idx && !done;
         return (
           <li key={s} className="relative flex flex-1 flex-col items-center text-center">
-            {i > 0 && <span className={`absolute right-1/2 top-3 h-0.5 w-full ${i <= idx ? "bg-leaf-500" : "bg-slate-200"}`} />}
+            {i > 0 && <span className={`absolute right-1/2 top-[13px] h-1 w-full ${i <= idx ? "bg-lime-400" : dark ? "bg-white/15" : "bg-cream-200"}`} />}
             <span
-              className={`relative z-10 grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold ${
-                done ? "bg-leaf-500 text-white" : current ? "bg-sun-400 text-navy-950 ring-4 ring-sun-100" : "bg-slate-200 text-slate-500"
+              className={`relative z-10 grid h-7 w-7 place-items-center rounded-full font-display text-xs font-black ${
+                done ? "bg-lime-400 text-ink-900" : current ? "bg-volt-400 text-ink-900 ring-4 ring-volt-400/30"   : dark ? "bg-white/10 text-ink-300" : "bg-cream-200 text-ink-500"
               }`}
             >
               {done ? <CheckIcon width={14} height={14} strokeWidth={3} /> : i + 1}
             </span>
             {!compact && (
-              <span className={`mt-1.5 hidden text-[11px] leading-tight sm:block ${current ? "font-semibold text-navy-950" : "text-slate-500"}`}>
+              <span className={`mt-2 hidden text-[11px] font-semibold uppercase leading-tight tracking-wide sm:block ${current ? (dark ? "text-white" : "text-ink-900") : dark ? "text-ink-400" : "text-ink-500"}`}>
                 {PROJECT_STATUS[s].step}
               </span>
             )}
@@ -37,22 +37,22 @@ export function Stepper({ status, compact }: { status: ProjectStatus; compact?: 
 export function ProjectCard({ project }: { project: Project }) {
   const st = PROJECT_STATUS[project.status];
   return (
-    <Link href={`/projects/${project.id}`} className="card block p-4 transition hover:border-slate-300 sm:p-5">
+    <Link href={`/projects/${project.id}`} className="card group block p-4 transition duration-200 hover:-translate-y-0.5 hover:border-ink-900 sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-semibold text-navy-950">{project.title}</p>
-          <p className="mt-0.5 text-sm text-slate-500">
+          <p className="text-lg font-bold leading-tight tracking-tight text-ink-900">{project.title}</p>
+          <p className="mt-0.5 text-sm text-ink-500">
             {project.quote_price ? `Quote ${aud(project.quote_price)}` : `Estimate ${aud(project.estimate_low)}–${aud(project.estimate_high)}`} · {fmtDate(project.created_at)}
           </p>
         </div>
         <div className="flex items-center gap-1">
           <Badge tone={st.tone}>{st.label}</Badge>
-          <ChevronRight className="text-slate-400" />
+          <ChevronRight className="text-ink-400 transition group-hover:translate-x-0.5 group-hover:text-ink-900" />
         </div>
       </div>
       <div className="mt-4"><Stepper status={project.status} compact /></div>
       {project.install_date && ["scheduled"].includes(project.status) && (
-        <p className="mt-3 text-sm font-medium text-violet-700">Install day: {fmtDate(project.install_date)}</p>
+        <p className="mt-4 inline-flex rounded-md bg-volt-400 px-2 py-1 text-xs font-bold uppercase tracking-wider text-ink-900">Install day · {fmtDate(project.install_date)}</p>
       )}
     </Link>
   );

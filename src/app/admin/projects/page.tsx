@@ -22,20 +22,20 @@ export default async function AdminProjects({ searchParams }: { searchParams: Pr
     <>
       <PageHeader title="Projects" subtitle="Quote requests through to grid connection." />
       <div className="mb-4 flex flex-wrap gap-2">
-        <Link href="/admin/projects" className={`rounded-full px-3 py-1 text-sm font-semibold ${!status ? "bg-navy-900 text-white" : "bg-white ring-1 ring-slate-200"}`}>All</Link>
+        <Link href="/admin/projects" className={`rounded-full px-3 py-1 text-sm font-semibold ${!status ? "bg-ink-900 text-white" : "bg-white ring-1 ring-cream-300"}`}>All</Link>
         {(Object.keys(PROJECT_STATUS) as ProjectStatus[]).map((s) => (
-          <Link key={s} href={`/admin/projects?status=${s}`} className={`rounded-full px-3 py-1 text-sm font-semibold ${status === s ? "bg-navy-900 text-white" : "bg-white ring-1 ring-slate-200"}`}>
+          <Link key={s} href={`/admin/projects?status=${s}`} className={`rounded-full px-3 py-1 text-sm font-semibold ${status === s ? "bg-ink-900 text-white" : "bg-white ring-1 ring-cream-300"}`}>
             {PROJECT_STATUS[s].label}
           </Link>
         ))}
       </div>
       {rows.length ? (
-        <div className="card divide-y divide-slate-100">
+        <div className="card divide-y divide-cream-200">
           {rows.map((p) => (
-            <Link key={p.id} href={`/admin/projects/${p.id}`} className="flex items-center justify-between gap-3 p-4 hover:bg-slate-50">
+            <Link key={p.id} href={`/admin/projects/${p.id}`} className="flex items-center justify-between gap-3 p-4 hover:bg-cream-50">
               <div className="min-w-0">
-                <p className="truncate font-medium text-navy-950">#{p.id} {p.first_name} {p.last_name}: {p.title}</p>
-                <p className="text-xs text-slate-500">
+                <p className="truncate font-medium text-ink-900">#{p.id} {p.first_name} {p.last_name}: {p.title}</p>
+                <p className="text-xs text-ink-500">
                   {p.suburb ?? "—"} · {p.quote_price ? `quoted ${aud(p.quote_price)}` : `est. ${aud(p.estimate_low)}–${aud(p.estimate_high)}`}
                   {p.install_date ? ` · install ${fmtDate(p.install_date)}` : ""} · updated {fmtDate(p.updated_at)}
                 </p>

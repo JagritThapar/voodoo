@@ -36,7 +36,7 @@ export default async function AdminHome() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Overview" />
+      <PageHeader eyebrow="Admin" title="Overview." />
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat accent label="New quote requests" value={stats.openQuotes} hint={<Link href="/admin/projects?status=requested" className="underline">Review</Link>} />
         <Stat label="Installs in progress" value={stats.inProgress} />
@@ -50,56 +50,56 @@ export default async function AdminHome() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Needs action">
           {requests.length ? (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-cream-200">
               {requests.map((p) => (
                 <li key={p.id}>
-                  <Link href={`/admin/projects/${p.id}`} className="flex items-center justify-between gap-3 py-3 hover:bg-slate-50">
+                  <Link href={`/admin/projects/${p.id}`} className="flex items-center justify-between gap-3 py-3 hover:bg-cream-50">
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-navy-950">{p.first_name} {p.last_name}: {p.title}</p>
-                      <p className="text-xs text-slate-500">{p.suburb ?? "—"} · est. {aud(p.estimate_low)}–{aud(p.estimate_high)} · {fmtDate(p.created_at)}</p>
+                      <p className="truncate font-medium text-ink-900">{p.first_name} {p.last_name}: {p.title}</p>
+                      <p className="text-xs text-ink-500">{p.suburb ?? "—"} · est. {aud(p.estimate_low)}–{aud(p.estimate_high)} · {fmtDate(p.created_at)}</p>
                     </div>
                     <Badge tone={PROJECT_STATUS[p.status].tone}>{p.status === "accepted" ? "Book install" : "Send quote"}</Badge>
                   </Link>
                 </li>
               ))}
             </ul>
-          ) : <p className="text-sm text-slate-500">All caught up.</p>}
+          ) : <p className="text-sm text-ink-500">All caught up.</p>}
         </Card>
 
         <Card title="Latest reviews">
           {reviews.length ? (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-cream-200">
               {reviews.map((r) => (
                 <li key={r.id} className="py-3">
                   <div className="flex items-center justify-between">
-                    <span className="flex gap-0.5 text-sun-400">{[1, 2, 3, 4, 5].map((i) => <StarIcon key={i} width={14} height={14} filled={i <= r.rating} />)}</span>
-                    <Link href={`/admin/projects/${r.project_id}`} className="text-xs text-slate-500 underline">{r.first_name} {r.last_name} · {fmtDate(r.created_at)}</Link>
+                    <span className="flex gap-0.5 text-volt-400">{[1, 2, 3, 4, 5].map((i) => <StarIcon key={i} width={14} height={14} filled={i <= r.rating} />)}</span>
+                    <Link href={`/admin/projects/${r.project_id}`} className="text-xs text-ink-500 underline">{r.first_name} {r.last_name} · {fmtDate(r.created_at)}</Link>
                   </div>
-                  <p className="mt-1 font-medium text-navy-950">{r.title}</p>
-                  <p className="text-sm text-slate-600">{r.body}</p>
-                  {r.installer_rating && <p className="mt-1 text-xs text-slate-500">Installer: {r.installer_rating}/5</p>}
+                  <p className="mt-1 font-medium text-ink-900">{r.title}</p>
+                  <p className="text-sm text-ink-600">{r.body}</p>
+                  {r.installer_rating && <p className="mt-1 text-xs text-ink-500">Installer: {r.installer_rating}/5</p>}
                 </li>
               ))}
             </ul>
-          ) : <p className="text-sm text-slate-500">No reviews yet.</p>}
+          ) : <p className="text-sm text-ink-500">No reviews yet.</p>}
         </Card>
       </div>
 
       <Card title="Customers">
         <div className="-mx-4 overflow-x-auto sm:-mx-5">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="text-xs uppercase text-slate-500">
+            <thead className="text-xs uppercase text-ink-500">
               <tr><th className="px-4 py-2 sm:px-5">Name</th><th className="px-2 py-2">Contact</th><th className="px-2 py-2">Referred by</th><th className="px-2 py-2">Projects</th><th className="px-2 py-2">Referrals</th><th className="px-2 py-2">Joined</th></tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-cream-200">
               {customers.map((c) => (
                 <tr key={c.id}>
-                  <td className="px-4 py-2.5 font-medium text-navy-950 sm:px-5">{c.first_name} {c.last_name}<span className="block text-xs font-normal text-slate-500">{c.suburb}</span></td>
-                  <td className="px-2 py-2.5 text-slate-600">{c.email}<span className="block text-xs">{c.phone}</span></td>
-                  <td className="px-2 py-2.5 text-slate-600">{c.referrer ?? "—"}</td>
+                  <td className="px-4 py-2.5 font-medium text-ink-900 sm:px-5">{c.first_name} {c.last_name}<span className="block text-xs font-normal text-ink-500">{c.suburb}</span></td>
+                  <td className="px-2 py-2.5 text-ink-600">{c.email}<span className="block text-xs">{c.phone}</span></td>
+                  <td className="px-2 py-2.5 text-ink-600">{c.referrer ?? "—"}</td>
                   <td className="px-2 py-2.5"><Link className="underline" href={`/admin/projects?user=${c.id}`}>{c.projects}</Link></td>
                   <td className="px-2 py-2.5">{c.downline}</td>
-                  <td className="px-2 py-2.5 text-slate-600">{fmtDate(c.created_at)}</td>
+                  <td className="px-2 py-2.5 text-ink-600">{fmtDate(c.created_at)}</td>
                 </tr>
               ))}
             </tbody>

@@ -28,16 +28,16 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
         <div className="space-y-4">
           <Card title="Customer">
             <dl className="space-y-1 text-sm">
-              <div><dt className="inline text-slate-500">Email: </dt><dd className="inline"><a className="underline" href={`mailto:${customer.email}`}>{customer.email}</a></dd></div>
-              <div><dt className="inline text-slate-500">Phone: </dt><dd className="inline">{customer.phone ? <a className="underline" href={`tel:${customer.phone}`}>{customer.phone}</a> : "—"}</dd></div>
-              <div><dt className="inline text-slate-500">Address: </dt><dd className="inline">{[customer.address, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(", ") || "—"}</dd></div>
+              <div><dt className="inline text-ink-500">Email: </dt><dd className="inline"><a className="underline" href={`mailto:${customer.email}`}>{customer.email}</a></dd></div>
+              <div><dt className="inline text-ink-500">Phone: </dt><dd className="inline">{customer.phone ? <a className="underline" href={`tel:${customer.phone}`}>{customer.phone}</a> : "—"}</dd></div>
+              <div><dt className="inline text-ink-500">Address: </dt><dd className="inline">{[customer.address, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(", ") || "—"}</dd></div>
             </dl>
           </Card>
           <Card title="Requested design">
             <ul className="list-disc space-y-1 pl-5 text-sm">{designSummary(design).map((s) => <li key={s}>{s}</li>)}</ul>
-            {design.notes && <p className="mt-3 rounded-lg bg-slate-50 p-3 text-sm">“{design.notes}”</p>}
-            <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-sm">
-              {est.lines.map((l) => <div key={l.label} className="flex justify-between"><span className="text-slate-600">{l.label}</span><span>{aud(l.amount)}</span></div>)}
+            {design.notes && <p className="mt-3 rounded-lg bg-cream-50 p-3 text-sm">“{design.notes}”</p>}
+            <div className="mt-3 space-y-1 border-t border-cream-200 pt-3 text-sm">
+              {est.lines.map((l) => <div key={l.label} className="flex justify-between"><span className="text-ink-600">{l.label}</span><span>{aud(l.amount)}</span></div>)}
               {est.rebates.map((r) => <div key={r.label} className="flex justify-between text-leaf-700"><span>{r.label}</span><span>−{aud(r.amount)}</span></div>)}
               <div className="flex justify-between font-semibold"><span>Calculator net</span><span>{aud(est.net)}</span></div>
             </div>
@@ -45,8 +45,8 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
           {review && (
             <Card title={`Customer review: ${review.rating}/5`}>
               <p className="font-medium">{review.title}</p>
-              <p className="text-sm text-slate-600">{review.body}</p>
-              {review.installer_rating && <p className="mt-1 text-xs text-slate-500">Installer rating: {review.installer_rating}/5</p>}
+              <p className="text-sm text-ink-600">{review.body}</p>
+              {review.installer_rating && <p className="mt-1 text-xs text-ink-500">Installer rating: {review.installer_rating}/5</p>}
             </Card>
           )}
         </div>
@@ -71,20 +71,20 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
               </div>
               <Field label="Timeline note to customer (optional)"><input className="input" name="note" placeholder="e.g. Install booked, our team arrives 7:30am" /></Field>
               <SubmitButton>Save &amp; notify timeline</SubmitButton>
-              <p className="text-xs text-slate-500">Setting status to Installed or System live marks the customer&apos;s referral as installed and creates rewards for their upline.</p>
+              <p className="text-xs text-ink-500">Setting status to Installed or System live marks the customer&apos;s referral as installed and creates rewards for their upline.</p>
             </ActionForm>
           </Card>
 
           {paperwork.length > 0 && (
             <Card title="Paperwork">
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-cream-200">
                 {paperwork.map((p) => (
                   <li key={p.id} className="py-3">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="font-medium">{p.name} <span className="text-xs font-normal text-slate-500">({p.owner === "customer" ? "customer" : "AES"})</span></p>
+                      <p className="font-medium">{p.name} <span className="text-xs font-normal text-ink-500">({p.owner === "customer" ? "customer" : "AES"})</span></p>
                       <Badge tone={PAPERWORK_STATUS[p.status].tone}>{PAPERWORK_STATUS[p.status].label}</Badge>
                     </div>
-                    {p.file_name && <a className="text-sm text-navy-700 underline" href={`/api/files/${p.id}`}>{p.file_name}</a>}
+                    {p.file_name && <a className="text-sm text-leaf-700 underline" href={`/api/files/${p.id}`}>{p.file_name}</a>}
                     <ActionForm action={adminUpdatePaperwork} resetOnSuccess={false} className="mt-2 flex flex-wrap items-center gap-2">
                       <input type="hidden" name="id" value={p.id} />
                       <select className="input w-auto py-1.5 text-sm" name="status" defaultValue={p.status}>
@@ -102,7 +102,7 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
           <Card title="Timeline">
             <ul className="space-y-2 text-sm">
               {events.map((e) => (
-                <li key={e.id}><span className="font-medium">{PROJECT_STATUS[e.status as ProjectStatus]?.label ?? e.status}</span> · <span className="text-slate-500">{fmtDate(e.created_at)}</span>{e.note && <span className="block text-slate-600">{e.note}</span>}</li>
+                <li key={e.id}><span className="font-medium">{PROJECT_STATUS[e.status as ProjectStatus]?.label ?? e.status}</span> · <span className="text-ink-500">{fmtDate(e.created_at)}</span>{e.note && <span className="block text-ink-600">{e.note}</span>}</li>
               ))}
             </ul>
           </Card>

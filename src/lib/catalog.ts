@@ -19,6 +19,7 @@ export const STC_DEEMING_YEARS = 5; // remaining deeming period for 2026 install
 export const BATTERY_STCS_PER_KWH = 6.8; // Cheaper Home Batteries Program factor (indicative)
 export const IMPORT_TARIFF = 0.32; // $ per kWh
 export const FEED_IN_TARIFF = 0.05; // $ per kWh
+export const SOLAR_VIC_REBATE = 1400; // Solar Victoria solar panel rebate, eligible homes (indicative)
 
 export const PANEL_OPTIONS = [
   { id: "value", name: "Tier 1 Value", detail: "440W mono panels, 25-yr product warranty", perKw: 900 },
@@ -39,6 +40,7 @@ export const BATTERY_OPTIONS = [
   { id: "b16", name: "16 kWh", kwh: 16, price: 13900 },
   { id: "b25", name: "25 kWh", kwh: 25, price: 19900 },
   { id: "b40", name: "40 kWh", kwh: 40, price: 29900 },
+  { id: "b50", name: "50 kWh", kwh: 50, price: 35900 },
 ] as const;
 
 export const EV_OPTIONS = [
@@ -47,15 +49,28 @@ export const EV_OPTIONS = [
   { id: "ev22", name: "22 kW smart charger (three phase)", price: 2390 },
 ] as const;
 
+export const AIRCON_OPTIONS = [
+  { id: "none", name: "No air conditioning", price: 0, rebate: 0 },
+  { id: "split", name: "Split system (1 room)", price: 2490, rebate: 0 },
+  { id: "multi", name: "Multi split (3 rooms)", price: 6990, rebate: 0 },
+  { id: "ducted", name: "Ducted, whole home", price: 14900, rebate: 0 },
+] as const;
+
+export const WATER_OPTIONS = [
+  { id: "none", name: "No water filtration", price: 0 },
+  { id: "whole", name: "Whole-home filtration (fitted at the mains)", price: 3490 },
+] as const;
+
 export const HOT_WATER_OPTIONS = [
   { id: "none", name: "No hot water upgrade", price: 0, rebate: 0 },
   { id: "hp200", name: "Heat pump 200L (1–3 people)", price: 3990, rebate: 1000 },
   { id: "hp270", name: "Heat pump 270L (3–6 people)", price: 4590, rebate: 1100 },
+  { id: "hp350", name: "Heat pump 350L (5+ people)", price: 5290, rebate: 1200 },
 ] as const;
 
 export const ROOF_TYPES = ["Tin / Colorbond", "Tile (concrete)", "Tile (terracotta)", "Klip-Lok", "Flat", "Other / not sure"] as const;
 
-export const SOLAR_SIZES = [0, 6.6, 8, 10, 13.2, 15, 20] as const;
+export const SOLAR_SIZES = [0, 6.6, 8, 10, 13.2, 15, 20, 25, 30] as const;
 
 export type Design = {
   state: AuState;
@@ -70,12 +85,14 @@ export type Design = {
   battery: (typeof BATTERY_OPTIONS)[number]["id"];
   ev: (typeof EV_OPTIONS)[number]["id"];
   hotWater: (typeof HOT_WATER_OPTIONS)[number]["id"];
+  aircon: (typeof AIRCON_OPTIONS)[number]["id"];
+  water: (typeof WATER_OPTIONS)[number]["id"];
   birdProofing: boolean;
   notes: string;
 };
 
 export const DEFAULT_DESIGN: Design = {
-  state: "NSW",
+  state: "VIC",
   postcode: "",
   quarterlyBill: 600,
   roofType: ROOF_TYPES[0],
@@ -87,6 +104,8 @@ export const DEFAULT_DESIGN: Design = {
   battery: "none",
   ev: "none",
   hotWater: "none",
+  aircon: "none",
+  water: "none",
   birdProofing: false,
   notes: "",
 };
@@ -116,6 +135,8 @@ export function normaliseDesign(raw: Partial<Record<keyof Design, unknown>>): De
     battery: pick(BATTERY_OPTIONS, String(raw.battery)).id,
     ev: pick(EV_OPTIONS, String(raw.ev)).id,
     hotWater: pick(HOT_WATER_OPTIONS, String(raw.hotWater)).id,
+    aircon: pick(AIRCON_OPTIONS, String(raw.aircon)).id,
+    water: pick(WATER_OPTIONS, String(raw.water)).id,
     birdProofing: raw.birdProofing === true || raw.birdProofing === "true" || raw.birdProofing === "on",
     notes: String(raw.notes ?? "").slice(0, 1000),
   };
@@ -140,6 +161,8 @@ export function estimate(d: Design): Estimate {
   const battery = pick(BATTERY_OPTIONS, d.battery);
   const ev = pick(EV_OPTIONS, d.ev);
   const hw = pick(HOT_WATER_OPTIONS, d.hotWater);
+  const ac = pick(AIRCON_OPTIONS, d.aircon ?? "none");
+  const water = pick(WATER_OPTIONS, d.water ?? "none");
   const warnings: string[] = [];
 
   const lines: Estimate["lines"] = [];
@@ -161,8 +184,10 @@ export function estimate(d: Design): Estimate {
   if (ev.price) lines.push({ label: ev.name, amount: ev.price });
   if (ev.id === "ev22" && d.phase === "single") warnings.push("22 kW chargers need three-phase power — a 7 kW charger may suit better.");
   if (hw.price) lines.push({ label: hw.name, amount: hw.price });
+  if (ac.price) lines.push({ label: `Air con: ${ac.name}`, amount: ac.price });
+  if (water.price) lines.push({ label: water.name, amount: water.price });
   if (d.solarKw > 10 && d.phase === "single") warnings.push("Systems over 10 kW on single phase may be export-limited by your network.");
-  if (d.solarKw === 0 && battery.kwh === 0 && !ev.price && !hw.price) warnings.push("Pick at least one product to get an estimate.");
+  if (d.solarKw === 0 && battery.kwh === 0 && !ev.price && !hw.price && !ac.price && !water.price) warnings.push("Pick at least one product to get an estimate.");
 
   const gross = lines.reduce((s, l) => s + l.amount, 0);
 
@@ -175,7 +200,8 @@ export function estimate(d: Design): Estimate {
     const stcs = Math.floor(Math.min(battery.kwh, 50) * BATTERY_STCS_PER_KWH);
     rebates.push({ label: `Cheaper Home Batteries discount (~${stcs} STCs)`, amount: stcs * STC_PRICE });
   }
-  if (hw.rebate) rebates.push({ label: "Heat pump STC / state incentive", amount: hw.rebate });
+  if (d.solarKw > 0 && d.state === "VIC") rebates.push({ label: "Solar Victoria panel rebate (if eligible)", amount: SOLAR_VIC_REBATE });
+  if (hw.rebate) rebates.push({ label: d.state === "VIC" ? "Heat pump STCs + Solar Victoria / VEU" : "Heat pump STC / state incentive", amount: hw.rebate });
   const rebateTotal = rebates.reduce((s, r) => s + r.amount, 0);
   const net = Math.max(0, gross - rebateTotal);
 
@@ -211,6 +237,8 @@ export function designTitle(d: Design): string {
   if (battery.kwh > 0) parts.push(`${battery.kwh} kWh Battery`);
   if (d.ev !== "none") parts.push("EV Charger");
   if (d.hotWater !== "none") parts.push("Heat Pump");
+  if (d.aircon && d.aircon !== "none") parts.push("Air Con");
+  if (d.water && d.water !== "none") parts.push("Water Filtration");
   return parts.join(" + ") || "Custom system";
 }
 
@@ -223,6 +251,8 @@ export function designSummary(d: Design): string[] {
   if (d.battery !== "none") out.push(`Battery: ${pick(BATTERY_OPTIONS, d.battery).name}`);
   if (d.ev !== "none") out.push(pick(EV_OPTIONS, d.ev).name);
   if (d.hotWater !== "none") out.push(pick(HOT_WATER_OPTIONS, d.hotWater).name);
+  if (d.aircon && d.aircon !== "none") out.push(`Air con: ${pick(AIRCON_OPTIONS, d.aircon).name}`);
+  if (d.water && d.water !== "none") out.push(pick(WATER_OPTIONS, d.water).name);
   if (d.birdProofing) out.push("Bird proofing");
   out.push(`${d.roofType} roof, ${d.storeys} storey, ${d.phase} phase`);
   out.push(`${d.state}${d.postcode ? " " + d.postcode : ""} · ~$${d.quarterlyBill}/quarter bill`);

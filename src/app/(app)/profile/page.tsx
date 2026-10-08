@@ -13,7 +13,7 @@ export default async function ProfilePage() {
   const user = await requireUser();
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <PageHeader title="Profile" subtitle={user.email} />
+      <PageHeader eyebrow="Profile" title={`${user.first_name} ${user.last_name}`} subtitle={user.email} />
       <Card>
         <ActionForm action={updateProfile} resetOnSuccess={false}>
           <div className="grid grid-cols-2 gap-3">
@@ -37,11 +37,11 @@ export default async function ProfilePage() {
       </Card>
 
       <Card title="Need help?">
-        <p className="text-sm text-slate-600">
-          Call <a className="font-semibold text-navy-700" href={`tel:${COMPANY.phone.replace(/\s/g, "")}`}>{COMPANY.phone}</a> or email{" "}
-          <a className="font-semibold text-navy-700" href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>.
+        <p className="text-sm text-ink-600">
+          Call <a className="font-semibold text-leaf-700" href={`tel:${COMPANY.phone.replace(/\s/g, "")}`}>{COMPANY.phone}</a> or email{" "}
+          <a className="font-semibold text-leaf-700" href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>.
         </p>
-        <a className="mt-2 inline-block text-sm font-semibold text-navy-700 underline" href={COMPANY.website} target="_blank" rel="noreferrer">Visit our website</a>
+        <a className="mt-2 inline-block text-sm font-semibold text-leaf-700 underline" href={COMPANY.website} target="_blank" rel="noreferrer">Visit our website</a>
       </Card>
 
       <div className="flex flex-wrap gap-2">
