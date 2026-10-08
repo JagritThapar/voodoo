@@ -1,0 +1,26 @@
+# Render Blueprint: New → Blueprint → pick this repo.
+services:
+  - type: web
+    name: aussie-energy-savers
+    runtime: node
+    plan: starter # persistent disks need a paid plan
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /login
+    disk:
+      name: aes-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_PATH
+        value: /var/data/aes.db
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: SEED_DEMO
+        value: "false"
+      - key: ADMIN_PASSWORD
+        sync: false # Render asks you for this on first deploy
+      - key: APP_URL
+        sync: false # e.g. https://app.aussieenergysavers.com.au

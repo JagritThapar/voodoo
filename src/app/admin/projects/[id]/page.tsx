@@ -3,12 +3,13 @@ import { all, one } from "@/lib/db";
 import { designSummary, estimate } from "@/lib/catalog";
 import { PAPERWORK_STATUS, PROJECT_STATUS, aud, fmtDate, type ProjectStatus } from "@/lib/constants";
 import { parseDesign, type Paperwork, type Project, type ProjectEvent, type Review } from "@/lib/projects";
-import type { User } from "@/lib/auth";
+import { requireAdmin, type User } from "@/lib/auth";
 import { adminUpdatePaperwork, adminUpdateProject } from "../../actions";
 import { ActionForm, SubmitButton } from "@/components/form";
 import { Badge, Card, Field, PageHeader } from "@/components/ui";
 
 export default async function AdminProject({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin();
   const { id } = await params;
   const project = one<Project>("SELECT * FROM projects WHERE id = ?", Number(id));
   if (!project) notFound();

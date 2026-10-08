@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth";
 import { all } from "@/lib/db";
 import { COMMISSION_STATUS, REFERRAL_STATUS, aud, fmtDate, type ReferralStatus } from "@/lib/constants";
 import { adminApproveAllClearing, adminSetCommission, adminSetReferral } from "../actions";
@@ -6,6 +7,7 @@ import { Badge, Card, PageHeader } from "@/components/ui";
 export const metadata = { title: "Referrals" };
 
 export default async function AdminReferrals() {
+  await requireAdmin();
   const referrals = all<{ id: number; name: string; email: string | null; phone: string | null; suburb: string | null; interest: string | null; notes: string | null; status: ReferralStatus; created_at: string; referred_user_id: number | null; referrer: string }>(
     `SELECT r.*, u.first_name || ' ' || u.last_name AS referrer FROM referrals r JOIN users u ON u.id = r.referrer_id ORDER BY r.status = 'submitted' DESC, r.created_at DESC LIMIT 300`,
   );

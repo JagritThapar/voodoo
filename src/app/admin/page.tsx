@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth";
 import Link from "next/link";
 import { all, one } from "@/lib/db";
 import { PROJECT_STATUS, aud, fmtDate, type ProjectStatus } from "@/lib/constants";
@@ -7,6 +8,7 @@ import { StarIcon } from "@/components/icons";
 export const metadata = { title: "Overview" };
 
 export default async function AdminHome() {
+  await requireAdmin();
   const n = (sql: string) => one<{ n: number | null }>(sql)?.n ?? 0;
   const stats = {
     customers: n("SELECT COUNT(*) AS n FROM users WHERE role = 'customer'"),

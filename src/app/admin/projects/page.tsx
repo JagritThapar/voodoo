@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth";
 import Link from "next/link";
 import { all } from "@/lib/db";
 import { PROJECT_STATUS, aud, fmtDate, type ProjectStatus } from "@/lib/constants";
@@ -6,6 +7,7 @@ import { Badge, Empty, PageHeader } from "@/components/ui";
 export const metadata = { title: "Projects" };
 
 export default async function AdminProjects({ searchParams }: { searchParams: Promise<{ status?: string; user?: string }> }) {
+  await requireAdmin();
   const { status, user } = await searchParams;
   const where: string[] = [];
   const params: (string | number)[] = [];
