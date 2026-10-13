@@ -260,9 +260,10 @@ export function designSummary(d: Design): string[] {
 }
 
 /** Which referral-reward products a design includes (see REWARD_PRODUCTS). */
-export function rewardProducts(d: Design): ("battery" | "heat_pump" | "water_filter" | "ev_charger")[] {
-  const out: ("battery" | "heat_pump" | "water_filter" | "ev_charger")[] = [];
+export function rewardProducts(d: Design): ("battery" | "solar" | "heat_pump" | "water_filter" | "ev_charger")[] {
+  const out: ("battery" | "solar" | "heat_pump" | "water_filter" | "ev_charger")[] = [];
   if (d.battery && d.battery !== "none") out.push("battery");
+  if (d.solarKw > 0) out.push("solar");
   if (d.hotWater && d.hotWater !== "none") out.push("heat_pump");
   if (d.water && d.water !== "none") out.push("water_filter");
   if (d.ev && d.ev !== "none") out.push("ev_charger");

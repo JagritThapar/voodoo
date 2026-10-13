@@ -33,10 +33,11 @@ export const WARRANTIES = [
  * Multi-level referral rewards, paid per product when a referred customer's system is installed.
  * `amounts[0]` goes to whoever referred them (level 1), `amounts[1]` to that person's referrer, and so on.
  * Rewards come only from completed installs (never sign-ups), so this stays a sales referral scheme.
- * Products not listed here (e.g. solar on its own, air con) don't earn a reward.
+ * Products not listed here (e.g. air con) don't earn a reward.
  */
 export const REWARD_PRODUCTS = [
   { key: "battery", label: "Battery", amounts: [200, 100, 50] },
+  { key: "solar", label: "Solar panels", amounts: [75, 50, 25] },
   { key: "heat_pump", label: "Heat pump", amounts: [75, 50, 25] },
   { key: "water_filter", label: "Water filter", amounts: [75, 50, 25] },
   { key: "ev_charger", label: "EV charger", amounts: [75, 50, 25] },
