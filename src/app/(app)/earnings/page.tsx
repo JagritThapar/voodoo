@@ -1,7 +1,7 @@
 import { requireUser } from "@/lib/auth";
 import { all } from "@/lib/db";
 import { wallet } from "@/lib/referrals";
-import { COMMISSION_STATUS, MIN_PAYOUT, PAYOUT_STATUS, REFER_TABS, aud, fmtDate } from "@/lib/constants";
+import { COMMISSION_STATUS, MIN_PAYOUT, PAYOUT_STATUS, REFER_TABS, aud, fmtDate, rewardLabel } from "@/lib/constants";
 import { requestPayout, saveBankDetails } from "@/app/actions";
 import { ActionForm, SubmitButton } from "@/components/form";
 import { SubTabs } from "@/components/nav";
@@ -9,14 +9,14 @@ import { Badge, Card, Empty, Field, PageHeader, Stat } from "@/components/ui";
 
 export const metadata = { title: "Earnings" };
 
-type Row = { id: number; level: number; amount: number; status: string; created_at: string; name: string; referred_first: string | null; referred_last: string | null };
+type Row = { id: number; product: string; level: number; amount: number; status: string; created_at: string; name: string; referred_first: string | null; referred_last: string | null };
 type Payout = { id: number; amount: number; status: string; reference: string | null; created_at: string; processed_at: string | null };
 
 export default async function EarningsPage() {
   const user = await requireUser();
   const w = await wallet(user.id);
   const rows = await all<Row>(
-    `SELECT c.id, c.level, c.amount, c.status, c.created_at, r.name, u.first_name AS referred_first, u.last_name AS referred_last
+    `SELECT c.id, c.product, c.level, c.amount, c.status, c.created_at, r.name, u.first_name AS referred_first, u.last_name AS referred_last
      FROM commissions c JOIN referrals r ON r.id = c.referral_id LEFT JOIN users u ON u.id = r.referred_user_id
      WHERE c.beneficiary_id = ? ORDER BY c.created_at DESC`,
     user.id,
@@ -30,21 +30,17 @@ export default async function EarningsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Refer & earn" title="Your rewards." accent="Paid to your bank." subtitle="Rewards clear 14 days after an install, then you can withdraw them." />
+      <PageHeader title="Your rewards." />
       <SubTabs tabs={REFER_TABS} />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat accent label="Available" value={aud(w.available)} hint="Ready to withdraw" />
-        <Stat label="Clearing" value={aud(w.pending)} hint="Clears 14 days after install" />
-        <Stat label="Processing" value={aud(w.inPayout)} hint="Payout on its way" />
-        <Stat label="Paid to date" value={aud(w.paid)} />
+      <div className="grid grid-cols-2 gap-3">
+        <Stat accent label="Available" value={aud(w.available)} />
+        <Stat label="Pending" value={aud(w.pending + w.inPayout)} />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card title="Withdraw">
-          <p className="-mt-1 mb-4 text-sm text-ink-600">
-            Withdraw your available balance to your Australian bank account. Minimum {aud(MIN_PAYOUT)}. Paid within 5 business days.
-          </p>
+          <p className="-mt-2 mb-4 text-sm text-ink-500">Minimum {aud(MIN_PAYOUT)}. Paid within 5 business days.</p>
           <ActionForm action={requestPayout} resetOnSuccess={false}>
             <SubmitButton className="btn-volt w-full" pendingText="Requesting…">
               Withdraw {aud(w.available)}
@@ -64,15 +60,15 @@ export default async function EarningsPage() {
         </Card>
       </div>
 
-      <h2 className="mb-3 mt-8 font-semibold text-ink-900">Reward history</h2>
+      <h2 className="mb-3 mt-8 text-lg font-bold text-ink-900">History</h2>
       {rows.length ? (
         <div className="card divide-y divide-cream-200">
           {rows.map((r) => (
             <div key={r.id} className="flex items-center gap-3 p-4">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime-50 text-xs font-bold text-leaf-700">L{r.level}</span>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-ink-900 font-display text-xs font-black text-lime-400">L{r.level}</span>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-ink-900">{display(r)}&apos;s install</p>
-                <p className="text-xs text-ink-500">{r.level === 1 ? "Direct referral" : `Level ${r.level} network`} · {fmtDate(r.created_at)}</p>
+                <p className="truncate font-bold text-ink-900">{display(r)} · {rewardLabel(r.product)}</p>
+                <p className="text-xs text-ink-500">{fmtDate(r.created_at)}</p>
               </div>
               <div className="text-right">
                 <p className="font-semibold tabular-nums text-ink-900">{aud(r.amount)}</p>
@@ -82,7 +78,7 @@ export default async function EarningsPage() {
           ))}
         </div>
       ) : (
-        <Empty title="No rewards yet">Rewards appear here as soon as someone in your network has their system installed.</Empty>
+        <Empty title="No rewards yet" />
       )}
 
       {payouts.length > 0 && (

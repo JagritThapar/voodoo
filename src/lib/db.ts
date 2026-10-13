@@ -118,12 +118,14 @@ CREATE TABLE IF NOT EXISTS commissions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   beneficiary_id INTEGER NOT NULL REFERENCES users(id),
   referral_id INTEGER NOT NULL REFERENCES referrals(id),
+  project_id INTEGER NOT NULL DEFAULT 0, -- 0 = install logged by admin without a project in the app
+  product TEXT NOT NULL DEFAULT 'install',
   level INTEGER NOT NULL,
   amount INTEGER NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending',
   payout_id INTEGER REFERENCES payouts(id),
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (referral_id, level)
+  UNIQUE (referral_id, project_id, product, level)
 );
 CREATE INDEX IF NOT EXISTS idx_commissions_beneficiary ON commissions(beneficiary_id);
 
@@ -156,9 +158,40 @@ async function open(): Promise<Client> {
   if (DB_URL.startsWith("file:")) fs.mkdirSync(path.dirname(DB_URL.slice(5)), { recursive: true });
   const client = createClient({ url: DB_URL, authToken: process.env.TURSO_AUTH_TOKEN });
   if (DB_URL.startsWith("file:")) await client.execute("PRAGMA busy_timeout = 10000");
+  await migrate(client);
   await client.executeMultiple(SCHEMA);
   await seed(client);
   return client;
+}
+
+/** One-off upgrades for databases created by earlier versions of the app. */
+async function migrate(client: Client) {
+  const cols = await client.execute("PRAGMA table_info(commissions)");
+  if (cols.rows.length && !cols.rows.some((r) => r.name === "product")) {
+    // Rewards became per product/project: rebuild the table with the wider unique key, keeping every row.
+    await client.batch(
+      [
+        "ALTER TABLE commissions RENAME TO commissions_old",
+        `CREATE TABLE commissions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          beneficiary_id INTEGER NOT NULL REFERENCES users(id),
+          referral_id INTEGER NOT NULL REFERENCES referrals(id),
+          project_id INTEGER NOT NULL DEFAULT 0,
+          product TEXT NOT NULL DEFAULT 'install',
+          level INTEGER NOT NULL,
+          amount INTEGER NOT NULL,
+          status TEXT NOT NULL DEFAULT 'pending',
+          payout_id INTEGER REFERENCES payouts(id),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          UNIQUE (referral_id, project_id, product, level)
+        )`,
+        `INSERT INTO commissions (id, beneficiary_id, referral_id, level, amount, status, payout_id, created_at)
+         SELECT id, beneficiary_id, referral_id, level, amount, status, payout_id, created_at FROM commissions_old`,
+        "DROP TABLE commissions_old",
+      ],
+      "write",
+    );
+  }
 }
 
 // Opened lazily on first query; reused across requests and hot reloads.

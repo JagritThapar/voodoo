@@ -28,7 +28,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      <PageHeader eyebrow="News & offers" title="What's new." accent="What's on." subtitle="Rebate changes, member offers and plain-English energy tips from the AES team." />
+      <PageHeader title="News & offers." />
       <div className="mb-5 flex gap-2">
         {tabs.map((t) => (
           <Link key={t.label} href={t.k ? `/news?kind=${t.k}` : "/news"} className={`rounded-full px-4 py-2 text-sm font-bold transition ${filter === t.k ? "bg-ink-900 text-white" : "bg-white text-ink-600 ring-1 ring-cream-300 hover:ring-ink-900"}`}>

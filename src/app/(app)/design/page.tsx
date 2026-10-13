@@ -10,7 +10,7 @@ export default async function DesignPage() {
   const initial = normaliseDesign({ ...DEFAULT_DESIGN, state: user.state ?? DEFAULT_DESIGN.state, postcode: user.postcode ?? "" });
   return (
     <>
-      <PageHeader eyebrow="Design & quote" title="Sized to your home." accent="Priced on the spot." subtitle="Pick your products and see an estimate after rebates. We confirm a fixed written price after a quick check of your roof and switchboard." />
+      <PageHeader title="Design your system." accent="See your price." />
       <Designer initial={initial} />
     </>
   );

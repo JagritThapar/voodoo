@@ -1,8 +1,8 @@
 import "server-only";
 import { all, one, run } from "./db";
-import type { Design } from "./catalog";
+import { rewardProducts, type Design } from "./catalog";
 import type { ProjectStatus } from "./constants";
-import { advanceReferralForUser } from "./referrals";
+import { advanceReferralForUser, awardForProject } from "./referrals";
 
 export type Project = {
   id: number;
@@ -96,6 +96,9 @@ export async function setProjectStatus(project: Project, status: ProjectStatus, 
   }
   const sync = REFERRAL_SYNC[status];
   if (sync) await advanceReferralForUser(project.user_id, sync);
+  if (status === "installed" || status === "connected") {
+    await awardForProject(project.user_id, project.id, rewardProducts(parseDesign(project)));
+  }
 }
 
 export async function projectsFor(userId: number) {

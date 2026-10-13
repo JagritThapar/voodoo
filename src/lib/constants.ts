@@ -30,16 +30,21 @@ export const WARRANTIES = [
 ];
 
 /**
- * Multi-level referral rewards, paid when a referred customer's system is installed.
- * Level 1 = you referred them directly; level 2 = someone you referred referred them; etc.
- * Rewards are only ever earned from completed installs (never from sign-ups), which keeps
- * the program a product-sales referral scheme rather than a recruitment scheme.
+ * Multi-level referral rewards, paid per product when a referred customer's system is installed.
+ * `amounts[0]` goes to whoever referred them (level 1), `amounts[1]` to that person's referrer, and so on.
+ * Rewards come only from completed installs (never sign-ups), so this stays a sales referral scheme.
+ * Products not listed here (e.g. solar on its own, air con) don't earn a reward.
  */
-export const REWARD_LEVELS = [
-  { level: 1, amount: 500, label: "Direct referral" },
-  { level: 2, amount: 150, label: "Referral of your referral" },
-  { level: 3, amount: 50, label: "Third level" },
+export const REWARD_PRODUCTS = [
+  { key: "battery", label: "Battery", amounts: [200, 100, 50] },
+  { key: "heat_pump", label: "Heat pump", amounts: [75, 50, 25] },
+  { key: "water_filter", label: "Water filter", amounts: [75, 50, 25] },
+  { key: "ev_charger", label: "EV charger", amounts: [75, 50, 25] },
 ] as const;
+export type RewardProduct = (typeof REWARD_PRODUCTS)[number]["key"];
+export const REWARD_DEPTH = 3;
+export const TOP_REWARD = Math.max(...REWARD_PRODUCTS.map((p) => p.amounts[0]));
+export const rewardLabel = (key: string) => REWARD_PRODUCTS.find((p) => p.key === key)?.label ?? "Install";
 
 export const MIN_PAYOUT = 100;
 
@@ -97,7 +102,7 @@ export const PAYOUT_STATUS: Record<string, { label: string; tone: Tone }> = {
 
 export type Tone = "amber" | "sky" | "violet" | "green" | "slate" | "rose";
 
-export const INTERESTS = ["Solar", "Battery", "Solar + Battery", "EV charger", "Hot water heat pump", "Not sure yet"] as const;
+export const INTERESTS = ["Battery", "Solar + Battery", "Solar", "Heat pump", "Water filter", "EV charger", "Air con", "Not sure yet"] as const;
 
 export const aud = (n: number) =>
   n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });

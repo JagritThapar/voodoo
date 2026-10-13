@@ -26,16 +26,6 @@ const POSTS = [
     days_ago: 6,
   },
   {
-    kind: "offer",
-    title: "Three referrals installed this quarter? $300 bonus.",
-    summary: "On top of your usual rewards: when three people you referred have their systems installed this quarter, we add $300.",
-    body: "Your referral rewards already pay you for every install in your network. This quarter, when three of your direct referrals have their systems installed, we'll add a $300 bonus to your wallet. Share your link from the Refer tab.",
-    cta_label: "Refer a mate",
-    cta_url: "/referrals",
-    expires_at: "2026-12-31",
-    days_ago: 10,
-  },
-  {
     kind: "news",
     title: "Old hot water unit? Replace it once, with the rebate.",
     summary: "A heat pump running on your solar can cut hot water costs by around 70%. Solar Victoria and VEU help with the price.",
@@ -146,10 +136,10 @@ async function seedDemo(q: Q) {
     await q("INSERT INTO paperwork (project_id, name, description, owner, status) VALUES (?, ?, ?, ?, ?)", p1, n, desc, o, "approved");
   }
 
-  await insertProject(q, james, { solarKw: 10, battery: "b13" }, "connected", { quote: 19990, install: "2026-03-02", daysAgo: 200 });
+  const pJames = await insertProject(q, james, { solarKw: 10, battery: "b13" }, "connected", { quote: 19990, install: "2026-03-02", daysAgo: 200 });
   await insertProject(q, priya, { solarKw: 13.2, battery: "b25", phase: "three" }, "quoted", { quote: 24990, daysAgo: 30 });
-  await insertProject(q, liam, { solarKw: 8 }, "installed", { quote: 8490, install: "2026-07-10", daysAgo: 120 });
-  await insertProject(q, noah, { solarKw: 10, battery: "b10" }, "installed", { quote: 15990, install: "2026-09-20", daysAgo: 60 });
+  const pLiam = await insertProject(q, liam, { solarKw: 8, battery: "b10" }, "installed", { quote: 8490, install: "2026-07-10", daysAgo: 120 });
+  const pNoah = await insertProject(q, noah, { solarKw: 10, battery: "b10", ev: "ev7" }, "installed", { quote: 15990, install: "2026-09-20", daysAgo: 60 });
 
   const ref = (...a: unknown[]) =>
     q("INSERT INTO referrals (referrer_id, referred_user_id, name, email, phone, suburb, interest, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now', ?))", ...a);
@@ -162,20 +152,27 @@ async function seedDemo(q: Q) {
   const rNoah = await ref(liam, noah, "Noah Williams", "noah@aes.test", null, "Mildura", "Solar + Battery", "installed", "-95 days");
 
   const payout = await q(
-    "INSERT INTO payouts (user_id, amount, status, account_name, bsb, account_number, reference, created_at, processed_at) VALUES (?, 500, 'paid', 'S Mitchell', '062-000', '12345678', 'AES-REF-1001', datetime('now','-150 days'), datetime('now','-147 days'))",
+    "INSERT INTO payouts (user_id, amount, status, account_name, bsb, account_number, reference, created_at, processed_at) VALUES (?, 200, 'paid', 'S Mitchell', '062-000', '12345678', 'AES-REF-1001', datetime('now','-150 days'), datetime('now','-147 days'))",
     sarah,
   );
   await q("UPDATE users SET bank_account_name = 'S Mitchell', bank_bsb = '062-000', bank_account_number = '12345678' WHERE id = ?", sarah);
 
-  const commissions: [number, number, number, number, string, number | null, string][] = [
-    [sarah, rJames, 1, 500, "paid", payout, "-170 days"],
-    [james, rLiam, 1, 500, "approved", null, "-80 days"],
-    [sarah, rLiam, 2, 150, "approved", null, "-80 days"],
-    [liam, rNoah, 1, 500, "pending", null, "-15 days"],
-    [james, rNoah, 2, 150, "pending", null, "-15 days"],
-    [sarah, rNoah, 3, 50, "pending", null, "-15 days"],
+  // [beneficiary, referral, project, product, level, amount, status, payout, created]
+  const commissions: [number, number, number, string, number, number, string, number | null, string][] = [
+    [sarah, rJames, pJames, "battery", 1, 200, "paid", payout, "-170 days"],
+    [james, rLiam, pLiam, "battery", 1, 200, "approved", null, "-80 days"],
+    [sarah, rLiam, pLiam, "battery", 2, 100, "approved", null, "-80 days"],
+    [liam, rNoah, pNoah, "battery", 1, 200, "pending", null, "-15 days"],
+    [james, rNoah, pNoah, "battery", 2, 100, "pending", null, "-15 days"],
+    [sarah, rNoah, pNoah, "battery", 3, 50, "pending", null, "-15 days"],
+    [liam, rNoah, pNoah, "ev_charger", 1, 75, "pending", null, "-15 days"],
+    [james, rNoah, pNoah, "ev_charger", 2, 50, "pending", null, "-15 days"],
+    [sarah, rNoah, pNoah, "ev_charger", 3, 25, "pending", null, "-15 days"],
   ];
   for (const c of commissions) {
-    await q("INSERT INTO commissions (beneficiary_id, referral_id, level, amount, status, payout_id, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now', ?))", ...c);
+    await q(
+      "INSERT INTO commissions (beneficiary_id, referral_id, project_id, product, level, amount, status, payout_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now', ?))",
+      ...c,
+    );
   }
 }

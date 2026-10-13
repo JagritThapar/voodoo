@@ -1,6 +1,6 @@
 import "server-only";
 import { all, one, run } from "./db";
-import { REFERRAL_FLOW, REWARD_LEVELS, type ReferralStatus } from "./constants";
+import { REFERRAL_FLOW, REWARD_DEPTH, REWARD_PRODUCTS, type ReferralStatus, type RewardProduct } from "./constants";
 
 export type Referral = {
   id: number;
@@ -18,33 +18,37 @@ export type Referral = {
 };
 
 /**
- * Pays every eligible upline member for a referral that has been installed.
- * Level 1 is the person who made the referral; each further level walks up `referred_by`.
- * Idempotent thanks to UNIQUE(referral_id, level).
+ * Pays the upline for one installed product. Level 1 is the person who made the referral;
+ * each further level walks up `referred_by`. Idempotent: UNIQUE(referral_id, project_id, product, level).
  */
-export async function awardCommissions(referralId: number) {
+export async function awardCommissions(referralId: number, projectId: number, products: RewardProduct[]) {
   const referral = await one<Referral>("SELECT * FROM referrals WHERE id = ?", referralId);
-  if (!referral) return;
-  let beneficiary: number | null = referral.referrer_id;
-  const seen = new Set<number>();
-  for (const tier of REWARD_LEVELS) {
-    if (beneficiary == null || seen.has(beneficiary)) break;
-    seen.add(beneficiary);
-    await run(
-      "INSERT OR IGNORE INTO commissions (beneficiary_id, referral_id, level, amount) VALUES (?, ?, ?, ?)",
-      beneficiary,
-      referralId,
-      tier.level,
-      tier.amount,
-    );
-    beneficiary = (await one<{ referred_by: number | null }>("SELECT referred_by FROM users WHERE id = ?", beneficiary))?.referred_by ?? null;
+  if (!referral || referral.status === "lost") return;
+  for (const key of products) {
+    const product = REWARD_PRODUCTS.find((p) => p.key === key);
+    if (!product) continue;
+    let beneficiary: number | null = referral.referrer_id;
+    const seen = new Set<number>();
+    for (let level = 1; level <= Math.min(REWARD_DEPTH, product.amounts.length); level++) {
+      if (beneficiary == null || seen.has(beneficiary)) break;
+      seen.add(beneficiary);
+      await run(
+        "INSERT OR IGNORE INTO commissions (beneficiary_id, referral_id, project_id, product, level, amount) VALUES (?, ?, ?, ?, ?, ?)",
+        beneficiary, referralId, projectId, key, level, product.amounts[level - 1],
+      );
+      beneficiary = (await one<{ referred_by: number | null }>("SELECT referred_by FROM users WHERE id = ?", beneficiary))?.referred_by ?? null;
+    }
   }
 }
 
-/** Set a referral's status. Moving to `installed` triggers upline rewards. */
+/** Rewards for a customer's installed project, paid to whoever referred them (and their upline). */
+export async function awardForProject(userId: number, projectId: number, products: RewardProduct[]) {
+  const referral = await one<Referral>("SELECT * FROM referrals WHERE referred_user_id = ?", userId);
+  if (referral && products.length) await awardCommissions(referral.id, projectId, products);
+}
+
 export async function setReferralStatus(referralId: number, status: ReferralStatus) {
   await run("UPDATE referrals SET status = ?, updated_at = datetime('now') WHERE id = ?", status, referralId);
-  if (status === "installed") await awardCommissions(referralId);
 }
 
 /** Moves the referral attached to a customer forward (never backwards) as their project progresses. */
@@ -118,7 +122,7 @@ export type NetworkNode = {
   children: NetworkNode[];
 };
 
-const MAX_DEPTH = REWARD_LEVELS.length + 2;
+const MAX_DEPTH = REWARD_DEPTH + 2;
 
 /**
  * Builds the viewer's downline. Members (people with accounts) can have their own children;

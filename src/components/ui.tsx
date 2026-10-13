@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { Tone } from "@/lib/constants";
+import { REWARD_PRODUCTS, aud, type Tone } from "@/lib/constants";
 import { ChevronLeft } from "./icons";
 
 // Square-ish status flags rather than generic pills; each tone stays inside the brand palette.
@@ -109,5 +109,30 @@ export function CheckList({ items, dark }: { items: { title: string; text?: stri
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Reward amounts per product and network level, straight from REWARD_PRODUCTS. */
+export function RewardTable({ dark }: { dark?: boolean }) {
+  const levels = REWARD_PRODUCTS[0].amounts.map((_, i) => i + 1);
+  return (
+    <table className="w-full text-left">
+      <thead>
+        <tr className={`eyebrow ${dark ? "text-ink-400" : "text-ink-500"}`}>
+          <th className="pb-2 font-bold">Installed</th>
+          {levels.map((l) => <th key={l} className="pb-2 text-right font-bold">Level {l}</th>)}
+        </tr>
+      </thead>
+      <tbody className={`divide-y ${dark ? "divide-white/10" : "divide-cream-200"}`}>
+        {REWARD_PRODUCTS.map((p) => (
+          <tr key={p.key}>
+            <td className={`py-2.5 font-bold ${dark ? "text-white" : "text-ink-900"}`}>{p.label}</td>
+            {p.amounts.map((a, i) => (
+              <td key={i} className={`stat-num py-2.5 text-right text-xl ${i === 0 ? (dark ? "text-volt-400" : "text-leaf-700") : dark ? "text-ink-200" : "text-ink-700"}`}>{aud(a)}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

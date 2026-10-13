@@ -10,16 +10,12 @@ import { aud } from "@/lib/constants";
 import { FormMessage, SubmitButton } from "@/components/form";
 import { BatteryIcon, CarIcon, DropIcon, FanIcon, FilterIcon, HomeIcon, SunIcon } from "@/components/icons";
 
-function Section({ n, icon, title, subtitle, children }: { n: number; icon: ReactNode; title: string; subtitle?: string; children: ReactNode }) {
+function Section({ icon, title, children }: { n?: number; icon: ReactNode; title: string; children: ReactNode }) {
   return (
     <section className="card p-4 sm:p-6">
       <div className="mb-5 flex items-center gap-3">
         <span className="grid h-11 w-11 place-items-center rounded-xl bg-ink-900 text-volt-400">{icon}</span>
-        <div>
-          <p className="eyebrow text-ink-400">Step {n}</p>
-          <h2 className="text-lg font-bold leading-tight tracking-tight text-ink-900">{title}</h2>
-        </div>
-        {subtitle && <p className="ml-auto hidden max-w-[16rem] text-right text-sm text-ink-500 sm:block">{subtitle}</p>}
+        <h2 className="text-lg font-bold leading-tight tracking-tight text-ink-900">{title}</h2>
       </div>
       {children}
     </section>
@@ -87,13 +83,12 @@ export function Designer({ initial }: { initial: Design }) {
         {e.gross > 0 && (
           <div className="flex items-baseline justify-between border-t-2 border-ink-900 pt-3 font-bold text-ink-900"><span>Indicative total</span><span className="stat-num text-2xl">{aud(e.net)}</span></div>
         )}
-        {e.annualGenerationKwh > 0 && <p className="text-xs text-ink-500">Expected generation ≈ {e.annualGenerationKwh.toLocaleString()} kWh/yr.</p>}
         {e.warnings.map((w) => <p key={w} className="rounded-lg bg-volt-400 px-3 py-2 text-xs font-semibold text-ink-900">{w}</p>)}
         <form action={action} className="space-y-3 pt-2">
           <input type="hidden" name="design" value={JSON.stringify(d)} />
           <FormMessage state={state} />
           <SubmitButton className="btn-volt w-full py-3.5 text-base" pendingText="Sending…">Request my quote</SubmitButton>
-          <p className="text-xs text-ink-500">Indicative only. Includes federal rebates and, in VIC, Solar Victoria where you&apos;re eligible. We check what you qualify for and do the forms. No hard sell, no obligation.</p>
+          <p className="text-xs text-ink-500">Indicative, including rebates. No obligation.</p>
         </form>
       </div>
     </div>
@@ -102,7 +97,7 @@ export function Designer({ initial }: { initial: Design }) {
   return (
     <div className="grid gap-5 pb-16 lg:grid-cols-[1fr_340px] lg:pb-0">
       <div className="space-y-4">
-        <Section n={1} icon={<HomeIcon />} title="Your home" subtitle="Helps us size the system and estimate rebates.">
+        <Section n={1} icon={<HomeIcon />} title="Your home">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <label className="block">
               <span className="label">State</span>
@@ -137,7 +132,7 @@ export function Designer({ initial }: { initial: Design }) {
           </div>
         </Section>
 
-        <Section n={2} icon={<SunIcon />} title="Solar panels" subtitle="Most homes suit 6.6–13.2 kW.">
+        <Section n={2} icon={<SunIcon />} title="Solar panels">
           <span className="label">System size</span>
           <Options cols={4} value={d.solarKw} onChange={(v) => set("solarKw", v)} options={SOLAR_SIZES.map((s) => ({ value: s, title: s ? `${s} kW` : "No solar", detail: s ? `~${Math.round(s / 0.44)} panels` : "Already have it" }))} />
           {d.solarKw > 0 && (
@@ -154,30 +149,30 @@ export function Designer({ initial }: { initial: Design }) {
           )}
         </Section>
 
-        <Section n={3} icon={<BatteryIcon />} title="Home battery" subtitle="Store daytime solar for the evening. Federal discount applied.">
+        <Section n={3} icon={<BatteryIcon />} title="Home battery">
           <Options value={d.battery} onChange={(v) => set("battery", v)} options={BATTERY_OPTIONS.map((b) => ({ value: b.id, title: b.name, price: b.price ? aud(b.price) : undefined }))} />
         </Section>
 
-        <Section n={4} icon={<CarIcon />} title="EV charging" subtitle="Charge your car from your own solar.">
+        <Section n={4} icon={<CarIcon />} title="EV charging">
           <Options value={d.ev} onChange={(v) => set("ev", v)} options={EV_OPTIONS.map((o) => ({ value: o.id, title: o.name, price: o.price ? aud(o.price) : undefined }))} />
         </Section>
 
-        <Section n={5} icon={<DropIcon />} title="Hot water heat pump" subtitle="Replace gas or old electric hot water, with the rebate.">
+        <Section n={5} icon={<DropIcon />} title="Hot water heat pump">
           <Options value={d.hotWater} onChange={(v) => set("hotWater", v)} options={HOT_WATER_OPTIONS.map((o) => ({ value: o.id, title: o.name, price: o.price ? aud(o.price) : undefined }))} />
         </Section>
 
-        <Section n={6} icon={<FanIcon />} title="Air conditioning" subtitle="Split, multi split or ducted, room by room or whole home.">
+        <Section n={6} icon={<FanIcon />} title="Air conditioning">
           <Options value={d.aircon} onChange={(v) => set("aircon", v)} options={AIRCON_OPTIONS.map((o) => ({ value: o.id, title: o.name, price: o.price ? aud(o.price) : undefined }))} />
         </Section>
 
-        <Section n={7} icon={<FilterIcon />} title="Water filtration" subtitle="Fitted at the mains, so every tap runs filtered.">
+        <Section n={7} icon={<FilterIcon />} title="Water filtration">
           <Options value={d.water} onChange={(v) => set("water", v)} options={WATER_OPTIONS.map((o) => ({ value: o.id, title: o.name, price: o.price ? aud(o.price) : undefined }))} />
         </Section>
 
         <section className="card p-4 sm:p-5">
           <label className="block">
-            <span className="label">Anything else we should know?</span>
-            <textarea className="input min-h-24" maxLength={1000} value={d.notes} onChange={(ev) => set("notes", ev.target.value)} placeholder="Shading, existing system, best time to call, pool pump…" />
+            <span className="label">Notes (optional)</span>
+            <textarea className="input min-h-24" maxLength={1000} value={d.notes} onChange={(ev) => set("notes", ev.target.value)} placeholder="Shading, existing system, best time to call…" />
           </label>
         </section>
 

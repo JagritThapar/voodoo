@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { all } from "@/lib/db";
-import { COMMISSION_STATUS, REFERRAL_STATUS, aud, fmtDate, type ReferralStatus } from "@/lib/constants";
+import { COMMISSION_STATUS, REFERRAL_STATUS, REWARD_PRODUCTS, rewardLabel, aud, fmtDate, type ReferralStatus } from "@/lib/constants";
 import { adminApproveAllClearing, adminSetCommission, adminSetReferral } from "../actions";
 import { Badge, Card, PageHeader } from "@/components/ui";
 
@@ -11,7 +11,7 @@ export default async function AdminReferrals() {
   const referrals = await all<{ id: number; name: string; email: string | null; phone: string | null; suburb: string | null; interest: string | null; notes: string | null; status: ReferralStatus; created_at: string; referred_user_id: number | null; referrer: string }>(
     `SELECT r.*, u.first_name || ' ' || u.last_name AS referrer FROM referrals r JOIN users u ON u.id = r.referrer_id ORDER BY r.status = 'submitted' DESC, r.created_at DESC LIMIT 300`,
   );
-  const commissions = await all<{ id: number; level: number; amount: number; status: string; payout_id: number | null; created_at: string; beneficiary: string; referral: string }>(
+  const commissions = await all<{ id: number; product: string; level: number; amount: number; status: string; payout_id: number | null; created_at: string; beneficiary: string; referral: string }>(
     `SELECT c.*, u.first_name || ' ' || u.last_name AS beneficiary, r.name AS referral
      FROM commissions c JOIN users u ON u.id = c.beneficiary_id JOIN referrals r ON r.id = c.referral_id
      ORDER BY c.status = 'pending' DESC, c.created_at DESC LIMIT 300`,
@@ -37,11 +37,17 @@ export default async function AdminReferrals() {
                   <td className="px-2 py-3 text-ink-600">{r.phone && <a className="block underline" href={`tel:${r.phone}`}>{r.phone}</a>}{r.email && <a className="block underline" href={`mailto:${r.email}`}>{r.email}</a>}</td>
                   <td className="px-2 py-3 text-ink-600">{r.referrer}</td>
                   <td className="px-2 py-3">
-                    <form action={adminSetReferral} className="flex items-center gap-2">
+                    <form action={adminSetReferral} className="flex flex-wrap items-center gap-2">
                       <input type="hidden" name="id" value={r.id} />
                       <select name="status" defaultValue={r.status} className="input w-auto py-1.5 text-sm">
                         {(Object.keys(REFERRAL_STATUS) as ReferralStatus[]).map((s) => <option key={s} value={s}>{REFERRAL_STATUS[s].label}</option>)}
                       </select>
+                      {!r.referred_user_id && (
+                        <select name="product" defaultValue="" aria-label="Product installed" className="input w-auto py-1.5 text-sm">
+                          <option value="">Product (if installed)</option>
+                          {REWARD_PRODUCTS.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+                        </select>
+                      )}
                       <button className="btn-ghost px-3 py-1.5">Save</button>
                     </form>
                   </td>
@@ -50,7 +56,7 @@ export default async function AdminReferrals() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-xs text-ink-500">Setting a lead to “Installed” creates rewards for the referrer and their upline. Leads with accounts update automatically as their project progresses.</p>
+        <p className="mt-3 text-xs text-ink-500">Leads with an account are rewarded automatically when their project is installed. For other leads, pick the product when you set them to Installed.</p>
       </Card>
 
       <Card
@@ -66,7 +72,7 @@ export default async function AdminReferrals() {
               {commissions.map((c) => (
                 <tr key={c.id}>
                   <td className="px-4 py-2.5 font-medium sm:px-5">{c.beneficiary}</td>
-                  <td className="px-2 py-2.5 text-ink-600">{c.referral} · {fmtDate(c.created_at)}</td>
+                  <td className="px-2 py-2.5 text-ink-600">{c.referral} · {rewardLabel(c.product)} · {fmtDate(c.created_at)}</td>
                   <td className="px-2 py-2.5">L{c.level}</td>
                   <td className="px-2 py-2.5 tabular-nums">{aud(c.amount)}</td>
                   <td className="px-2 py-2.5"><Badge tone={COMMISSION_STATUS[c.status].tone}>{c.payout_id && c.status === "approved" ? "In payout" : COMMISSION_STATUS[c.status].label}</Badge></td>

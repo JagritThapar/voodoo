@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { all, one } from "@/lib/db";
 import { designSummary } from "@/lib/catalog";
-import { COMPANY, PAPERWORK_STATUS, PROJECT_STATUS, WARRANTIES, aud, fmtDate } from "@/lib/constants";
+import { PAPERWORK_STATUS, PROJECT_STATUS, WARRANTIES, aud, fmtDate } from "@/lib/constants";
 import { parseDesign, type Paperwork, type Project, type ProjectEvent, type Review } from "@/lib/projects";
 import { acceptQuote, declineQuote } from "@/app/actions";
 import { Badge, Card, PageHeader } from "@/components/ui";
@@ -60,7 +60,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
               <p className="text-sm text-ink-500">Instant estimate after rebates</p>
               {project.status === "requested" && (
                 <>
-                  <p className="mt-3 text-sm text-ink-700">We&apos;re preparing your fixed-price quote. Questions? Call {COMPANY.phone}.</p>
+                  <p className="mt-3 text-sm text-ink-700">We&apos;re preparing your quote.</p>
                   <form action={declineQuote.bind(null, project.id)} className="mt-3"><button className="text-sm font-medium text-ink-500 underline">Cancel this request</button></form>
                 </>
               )}
@@ -74,7 +74,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
               <li key={s} className="flex gap-2"><CheckIcon width={16} height={16} className="mt-0.5 shrink-0 text-leaf-700" />{s}</li>
             ))}
           </ul>
-          {design.notes && <p className="mt-3 rounded-lg bg-cream-50 p-3 text-sm text-ink-600">“{design.notes}”</p>}
+          
         </Card>
       </div>
 
@@ -102,7 +102,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="font-medium text-ink-900">{p.name}</p>
-                        <p className="text-sm text-ink-500">{p.description}</p>
+                        {canUpload && <p className="text-sm text-ink-500">{p.description}</p>}
                         {p.file_name && (
                           <a href={`/api/files/${p.id}`} className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-leaf-700 underline">
                             <FileIcon width={14} height={14} /> {p.file_name}
@@ -128,11 +128,11 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
                 <div className="flex gap-0.5 text-volt-400">{[1, 2, 3, 4, 5].map((n) => <StarIcon key={n} filled={n <= review.rating} />)}</div>
                 <p className="mt-2 font-semibold text-ink-900">{review.title}</p>
                 <p className="mt-1 text-sm text-ink-700">{review.body}</p>
-                <p className="mt-2 text-xs text-ink-500">Posted {fmtDate(review.created_at)}. Thanks. Reviews help other Victorian families choose with confidence.</p>
+                <p className="mt-2 text-xs text-ink-500">{fmtDate(review.created_at)}</p>
               </div>
             ) : (
               <>
-                <p className="mb-4 text-sm text-ink-600">How did we go? Your feedback goes straight to our team and your installer.</p>
+
                 <ReviewForm projectId={project.id} />
               </>
             )}
@@ -152,7 +152,6 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-xs text-ink-400">Your handover pack has the full warranty terms for each product.</p>
         </section>
       )}
 

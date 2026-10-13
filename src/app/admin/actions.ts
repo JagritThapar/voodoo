@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { one, run, tx } from "@/lib/db";
-import { PROJECT_STATUS, REFERRAL_STATUS, type ProjectStatus, type ReferralStatus } from "@/lib/constants";
+import { PROJECT_STATUS, REFERRAL_STATUS, REWARD_PRODUCTS, type ProjectStatus, type ReferralStatus, type RewardProduct } from "@/lib/constants";
 import { setProjectStatus, type Project } from "@/lib/projects";
-import { setReferralStatus } from "@/lib/referrals";
+import { awardCommissions, setReferralStatus } from "@/lib/referrals";
 import { saveUpload } from "@/lib/uploads";
 import type { FormState } from "../actions";
 
@@ -53,7 +53,13 @@ export async function adminSetReferral(fd: FormData) {
   await requireAdmin();
   const status = str(fd, "status") as ReferralStatus;
   if (!(status in REFERRAL_STATUS)) return;
-  await tx(async () => await setReferralStatus(Number(fd.get("id")), status));
+  const id = Number(fd.get("id"));
+  const product = str(fd, "product") as RewardProduct;
+  await tx(async () => {
+    await setReferralStatus(id, status);
+    // Leads without an app account have no project to read products from, so staff pick the product.
+    if (status === "installed" && REWARD_PRODUCTS.some((p) => p.key === product)) await awardCommissions(id, 0, [product]);
+  });
   revalidatePath("/admin", "layout");
 }
 

@@ -28,25 +28,13 @@ export function ShareReferral({ code, link, firstName }: { code: string; link: s
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 rounded-xl bg-lime-50 p-1.5 pl-4">
-        <span className="text-xs font-medium uppercase tracking-wide text-ink-500">Code</span>
-        <span className="flex-1 font-mono text-lg font-bold tracking-wider text-ink-900">{code}</span>
-        <button type="button" onClick={() => copy(code, "code")} className="btn-ghost px-3 py-2">
-          <CopyIcon width={16} height={16} /> {copied === "code" ? "Copied" : "Copy"}
+      <div className="flex items-center justify-between gap-3 rounded-xl bg-cream-100 px-4 py-3">
+        <span className="font-mono text-xl font-bold tracking-wider text-ink-900">{code}</span>
+        <button type="button" onClick={() => copy(link, "link")} className="btn-ghost shrink-0 px-3 py-2">
+          <CopyIcon width={16} height={16} /> {copied ? "Copied" : "Copy link"}
         </button>
       </div>
-      <div className="flex items-center gap-2 rounded-xl border border-cream-300 p-1.5 pl-4">
-        <span className="min-w-0 flex-1 truncate text-sm text-ink-600">{link}</span>
-        <button type="button" onClick={() => copy(link, "link")} className="btn-ghost px-3 py-2">
-          {copied === "link" ? "Copied" : "Copy link"}
-        </button>
-      </div>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-        <button type="button" onClick={share} className="btn-volt col-span-3 sm:col-span-1"><ShareIcon width={16} height={16} /> Share</button>
-        <a className="btn-ghost" href={`sms:?&body=${encodeURIComponent(message)}`}>SMS</a>
-        <a className="btn-ghost" href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer">WhatsApp</a>
-        <a className="btn-ghost" href={`mailto:?subject=${encodeURIComponent("Go solar with Aussie Energy Savers")}&body=${encodeURIComponent(message)}`}>Email</a>
-      </div>
+      <button type="button" onClick={share} className="btn-volt w-full py-3"><ShareIcon width={16} height={16} /> Share</button>
     </div>
   );
 }

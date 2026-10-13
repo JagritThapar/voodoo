@@ -13,10 +13,7 @@ export default async function ProjectsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="My projects"
-        title="Quote to switch-on."
-        accent="All tracked."
-        subtitle="Quotes, installs and paperwork for your home, in one place."
+        title="Your projects."
         action={<Link href="/design" className="btn-volt hidden sm:inline-flex"><PlusIcon width={16} height={16} /> New quote</Link>}
       />
       {projects.length ? (

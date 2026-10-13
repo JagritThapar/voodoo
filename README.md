@@ -17,13 +17,16 @@ A mobile-first web app (installable as a PWA) for [Aussie Energy Savers](https:/
 
 ## Referral rewards (multi-level)
 
-Rewards are created when a referred customer's system is **installed**, never for sign-ups alone. Each upline member is paid according to `REWARD_LEVELS` in `src/lib/constants.ts`:
+Rewards are created when a referred customer's system is **installed**, never for sign-ups alone, and depend on what was installed (`REWARD_PRODUCTS` in `src/lib/constants.ts`):
 
-| Level | Who | Default |
-| --- | --- | --- |
-| 1 | You referred them directly | $500 |
-| 2 | Someone you referred referred them | $150 |
-| 3 | Third level | $50 |
+| Installed | Level 1 (you referred them) | Level 2 | Level 3 |
+| --- | --- | --- | --- |
+| Battery | $200 | $100 | $50 |
+| Heat pump | $75 | $50 | $25 |
+| Water filter | $75 | $50 | $25 |
+| EV charger | $75 | $50 | $25 |
+
+A project with several products earns each product's reward, and later installs (e.g. adding an EV charger) earn again. Solar-only and air-con installs don't earn a reward unless you add them to `REWARD_PRODUCTS`. For referred leads without an app account, staff choose the product in Admin → Referrals when marking them installed.
 
 Rewards start as **Clearing**. An admin approves them (one click approves everything older than 14 days) and they become **Available**. The customer withdraws, and the admin marks the payout paid with a bank reference.
 
